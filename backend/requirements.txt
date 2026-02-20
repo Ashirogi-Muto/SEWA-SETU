@@ -1,0 +1,14 @@
+fastapi
+uvicorn
+sqlalchemy[asyncio]
+asyncpg
+aiofiles
+python-multipart
+httpx
+python-dotenv
+pillow
+imagehash
+apscheduler
+numpy
+tensorflow
+shapely

@@ -1,0 +1,88 @@
+# IDE / Editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Environment files - VERY IMPORTANT
+.env
+.env.*
+!.env.example
+!.env.render.example
+env_backup/
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# --- Backend Specific (Python / FastAPI) ---
+venv/
+/backend/venv/
+/backend/__pycache__/
+*.pyc
+*.pyo
+*.pyd
+build/
+dist/
+*.egg-info/
+*.sqlite3
+*.db
+sewasetu.db
+
+# --- AI Model Server Specific ---
+/ai_model_server/venv/
+/ai_model_server/__pycache__/
+/ai_model_server/models/
+*.h5
+*.hdf5
+*.pkl
+*.joblib
+
+# --- Frontend Specific (Node.js / React) ---
+/node_modules/
+/admin-portal/dist/
+/admin-portal/build/
+/citizen-portal/dist/
+/citizen-portal/build/
+.vite/
+
+# Deployment artifacts
+.vercel/
+.netlify/
+
+# Security - Never commit these
+*.pem
+*.key
+*.crt
+*.p12
+*.pfx
+secrets.json
+config.json
+.env
+
+# Temporary files (debugging, testing)
+**/FIX*.md
+**/FIX*.sql
+**/TEST*.md
+**/QUICK*.md
+**/QUICK*.sql
+**/COMPLETE*.md
+**/COMPLETE*.sql
+**/*_SUMMARY.md
+**/test_*.py
+**/test_*.sh
+**/*.bat.env
+.env

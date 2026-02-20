@@ -1,0 +1,13 @@
+fastapi
+uvicorn
+tensorflow
+Pillow
+requests
+torch
+torchaudio
+transformers
+accelerate
+pydub
+soundfile
+pyctcdecode
+onnxruntime

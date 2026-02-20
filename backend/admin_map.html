@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - Civic Issues Map</title>
+    <!-- 1. Leaflet CSS for map styling -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+     integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+     crossorigin=""/>
+    <!-- 2. TailwindCSS for general styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Set a specific height for the map container */
+        #map { height: 100vh; }
+        body { margin: 0; padding: 0; }
+        /* Custom popup styling to make it cleaner */
+        .leaflet-popup-content-wrapper {
+            border-radius: 8px;
+        }
+        .leaflet-popup-content {
+            margin: 13px 19px;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        }
+        .popup-header {
+            font-weight: bold;
+            font-size: 1.1rem;
+            margin-bottom: 5px;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 5px;
+        }
+        .popup-body p {
+            margin: 5px 0;
+        }
+    </style>
+</head>
+<body class="bg-gray-100">
+
+    <!-- The div where the map will be rendered -->
+    <div id="map"></div>
+    
+    <!-- Loading indicator -->
+    <div id="loading" class="absolute inset-0 bg-white bg-opacity-75 flex items-center justify-center z-[1000]">
+        <div class="text-center">
+            <svg class="animate-spin h-10 w-10 text-blue-500 mx-auto" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            <p class="mt-2 text-lg font-semibold text-gray-700">Loading Reports...</p>
+        </div>
+    </div>
+    
+    <!-- Error message display -->
+    <div id="error" class="hidden absolute top-5 left-1/2 -translate-x-1/2 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg shadow-md z-[1000]" role="alert">
+        <strong class="font-bold">Error!</strong>
+        <span class="block sm:inline" id="error-message">Could not fetch data from the API.</span>
+    </div>
+
+    <!-- 3. Leaflet JavaScript for map functionality -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+     integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+     crossorigin=""></script>
+     
+    <script>
+        // --- CONFIGURATION ---
+        // Use relative URL to work with any deployment (localhost or production)
+        const API_URL = window.location.origin + '/api/reports';
+        // Default map center (Greater Noida, India)
+        const DEFAULT_CENTER = [28.4744, 77.5041]; 
+        const DEFAULT_ZOOM = 12;
+
+        // --- DOM ELEMENTS ---
+        const loadingDiv = document.getElementById('loading');
+        const errorDiv = document.getElementById('error');
+        const errorMessageSpan = document.getElementById('error-message');
+
+        // --- MAP INITIALIZATION ---
+        // Initialize the map and set its view to our chosen geographical coordinates and a zoom level
+        const map = L.map('map').setView(DEFAULT_CENTER, DEFAULT_ZOOM);
+
+        // Add a tile layer to the map. This is the background image of the map.
+        // We're using OpenStreetMap, which is a free and open-source map.
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        }).addTo(map);
+
+        // --- DATA FETCHING AND MAP PLOTTING ---
+        async function fetchAndDisplayReports() {
+            try {
+                // 1. Fetch data from our backend API
+                const response = await fetch(API_URL);
+                if (!response.ok) {
+                    throw new Error(`API returned status ${response.status}`);
+                }
+                const reports = await response.json();
+
+                // If no reports, hide loading and show a message
+                if (reports.length === 0) {
+                    loadingDiv.innerHTML = '<p class="text-lg font-semibold text-gray-700">No reports found.</p>';
+                    return;
+                }
+
+                // 2. Create markers for each report
+                reports.forEach(report => {
+                    const lat = report.latitude;
+                    const lon = report.longitude;
+                    
+                    // Create a marker on the map for the report's location
+                    const marker = L.marker([lat, lon]).addTo(map);
+                    
+                    // Create the informative popup content
+                    const popupContent = `
+                        <div class="popup-header">${report.category || 'Report'}</div>
+                        <div class="popup-body">
+                            <p><strong>Status:</strong> <span class="px-2 py-1 text-xs font-semibold rounded-full ${report.status === 'resolved' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}">${report.status}</span></p>
+                            <p><strong>Description:</strong> ${report.description}</p>
+                        </div>
+                    `;
+                    
+                    // Bind the popup to the marker
+                    marker.bindPopup(popupContent);
+                });
+
+                // 3. Hide the loading indicator
+                loadingDiv.style.display = 'none';
+
+            } catch (error) {
+                console.error('Failed to fetch reports:', error);
+                // Show an error message to the user
+                errorMessageSpan.textContent = `Could not fetch reports. Please ensure the backend API is running at ${API_URL}.`;
+                errorDiv.classList.remove('hidden');
+                // Hide loading indicator
+                loadingDiv.style.display = 'none';
+            }
+        }
+
+        // Run the function when the page loads
+        window.onload = fetchAndDisplayReports;
+    </script>
+</body>
+</html>
