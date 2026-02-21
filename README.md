@@ -23,8 +23,9 @@ sewa-setu/
 ├── admin-portal/       # React based frontend for the administration
 ├── docs/               # Project documentation and specifications
 ├── init_db.py          # Script to initialize the SQLite database
-├── start_local.sh      # Script to launch the backend and AI servers locally
-└── start_frontend.sh   # Script to launch the frontend web apps
+├── start_all.sh        # ⭐ One-command startup (tmux, SSH-safe, live-reload)
+├── start_local.sh      # Legacy: launch backend + AI servers in foreground
+└── start_frontend.sh   # Legacy: launch frontend portals in foreground
 ```
 
 ## System Requirements
@@ -35,40 +36,87 @@ sewa-setu/
 
 ## Local Development Setup
 
-To get the application running locally, you need to spin up the backend API servers as well as the frontend development servers. 
+To get the application running locally, you need to spin up the backend API servers as well as the frontend development servers.
 
-### 1. Start the Backend and AI Servers
-The simplest way to start the backend ecosystem is to use the provided bash script.
+### Quick Start (Recommended)
+
+The easiest way to run **everything** is with the all-in-one startup script. It uses **tmux** under the hood, so all services survive SSH disconnections and you can reconnect to see live logs at any time.
 
 ```bash
 # Clone the repository
 git clone https://github.com/Ashirogi-Muto/SEWA_SETU.git
 cd SEWA_SETU
 
-# Make scripts executable
-chmod +x start_local.sh start_frontend.sh
+# Make the script executable (first time only)
+chmod +x start_all.sh
 
-# This script will automatically:
-# - Create a python venv and install dependencies
-# - Initialize the database (init_db.py)
-# - Boot the AI Model Server on port 8003
-# - Boot the Primary Backend on port 8002
-./start_local.sh
+# Launch all services
+./start_all.sh
 ```
 
-### 2. Start the Frontend Portals
-In a separate terminal window, run the frontend startup script. This script will concurrently launch both React portals.
+This single command will:
+1. Create a Python virtual environment and install dependencies (if needed)
+2. Install Node.js dependencies for both portals (if needed)
+3. Initialize the SQLite database
+4. Start all 4 services inside a tmux session called **`sewa`**
+
+#### Services & Ports
+
+| Service | Port | Live-Reload |
+|---|---|---|
+| Backend API (uvicorn) | `8002` | ✅ `--reload` — picks up Python changes on save |
+| AI Model Server (uvicorn) | `8003` | ✅ `--reload` — picks up Python changes on save |
+| Admin Portal (Vite) | `3005` | ✅ HMR — instant browser updates on save |
+| Citizen Portal (Vite) | `3006` | ✅ HMR — instant browser updates on save |
+
+#### Surviving SSH Disconnects
+
+Because the services run inside a **tmux session**, they stay alive even after you close your SSH connection or lose internet. When you reconnect:
 
 ```bash
-npm run dev # (or run the following script)
+# Re-attach to the running session
+tmux attach -t sewa
+```
+
+#### Navigating Inside tmux
+
+Once attached, each service has its own tmux **window**:
+
+| Shortcut | Action |
+|---|---|
+| `Ctrl+B` then `0` | Switch to **backend** logs |
+| `Ctrl+B` then `1` | Switch to **ai-server** logs |
+| `Ctrl+B` then `2` | Switch to **admin** portal logs |
+| `Ctrl+B` then `3` | Switch to **citizen** portal logs |
+| `Ctrl+B` then `n` | Next window |
+| `Ctrl+B` then `p` | Previous window |
+| `Ctrl+B` then `d` | Detach (services keep running) |
+
+#### Stopping All Services
+
+```bash
+./start_all.sh stop
+```
+
+This kills the entire tmux session and all services within it.
+
+---
+
+### Alternative: Legacy Scripts
+
+If you prefer to run backends and frontends in separate foreground terminals (these **will** stop when you close SSH):
+
+```bash
+# Terminal 1 — Backend + AI Server
+chmod +x start_local.sh
+./start_local.sh
+
+# Terminal 2 — Frontend Portals
+chmod +x start_frontend.sh
 ./start_frontend.sh
 ```
 
-By default:
-- **Citizen Portal** will run on `http://localhost:5173`
-- **Admin Portal** will run on `http://localhost:5174`
-
-*Note: You may need to run `npm install` inside both the `citizen-portal` and `admin-portal` directories the very first time you set up the project.*
+> **Note:** You may need to run `npm install` inside both `citizen-portal/` and `admin-portal/` the first time you set up the project.
 
 ## Environment Variables
 The frontend apps communicate with the backend seamlessly. In a production build, ensure your API endpoints are configured correctly. Check the `vite.config.ts` in each portal directory for standard proxy configurations linking `/api` to the backend running on port 8002.
