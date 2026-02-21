@@ -31,11 +31,11 @@ const ReportsMap = () => {
   }
 
   return (
-    <MapContainer 
-        center={DEFAULT_CENTER} 
-        zoom={DEFAULT_ZOOM} 
-        scrollWheelZoom={false} 
-        style={{ height: '100%', width: '100%', borderRadius: '0.5rem' }}
+    <MapContainer
+      center={DEFAULT_CENTER}
+      zoom={DEFAULT_ZOOM}
+      scrollWheelZoom={false}
+      style={{ height: '100%', width: '100%', borderRadius: '0.5rem' }}
     >
       <TileLayer
         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'

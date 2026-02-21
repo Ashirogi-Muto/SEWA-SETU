@@ -84,7 +84,7 @@ async def transcribe_audio(file: UploadFile = File(...)):
         
     try:
         audio_bytes = await file.read()
-        result = transcribe_audio_blob(audio_bytes, lang_code="en") # Auto-detect or enforce English/Hindi
+        result = transcribe_audio_blob(audio_bytes)  # Auto-detect language via LID
         if result is None:
             raise HTTPException(status_code=500, detail="Failed to transcribe audio.")
         return result

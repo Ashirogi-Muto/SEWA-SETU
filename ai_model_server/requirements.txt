@@ -11,3 +11,4 @@ pydub
 soundfile
 pyctcdecode
 onnxruntime
+onnx==1.20.1

@@ -7,8 +7,22 @@ import path from "path";
 export default defineConfig(({ mode }) => ({
   server: {
     host: "::",
-    port: 5173,
+    port: 3005,
     allowedHosts: true,
+    proxy: {
+      '/api': {
+        target: 'http://localhost:8002',
+        changeOrigin: true,
+      },
+      '/ws': {
+        target: 'ws://localhost:8002',
+        ws: true,
+      },
+      '/static': {
+        target: 'http://localhost:8002',
+        changeOrigin: true,
+      },
+    },
   },
   plugins: [react()],
   resolve: {
