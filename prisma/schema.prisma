@@ -1,0 +1,28 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Issue {
+  id                String    @id @default(cuid())
+  imageUrl          String
+  audioUrl          String?
+  transcript        String?
+  category          String    // roads/sanitation/electricity/water/power
+  severity          Int       // 1-10
+  riskLabel         String?
+  riskDescription   String?
+  department        String
+  status            String    @default("OPEN")
+  lat               Float
+  lng               Float
+  location          String
+  userId            String?
+  slaHours          Int
+  createdAt         DateTime  @default(now())
+  resolvedAt        DateTime?
+}
