@@ -1,8 +1,8 @@
 import type { Metadata } from 'next'
 import { Poppins } from 'next/font/google'
 import './globals.css'
-import 'leaflet/dist/leaflet.css'
 import { cn } from '@/lib/utils'
+import DevRoleSwitcher from '@/components/DevRoleSwitcher'
 
 const poppins = Poppins({ weight: ['400', '500', '600', '700'], subsets: ['latin'] })
 
@@ -28,18 +28,21 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en">
+    <html lang="en" className="scroll-smooth">
       <head>
         <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
         <meta name="mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
       </head>
-      <body className={cn(poppins.className, 'bg-slate-950 flex justify-center items-center min-h-[100dvh] p-0 m-0')}>
-        {/* Phone container: min-h 100dvh so bottom nav is never clipped */}
-        <div className="w-full max-w-[390px] min-h-[100dvh] bg-white shadow-2xl relative">
-          {children}
-        </div>
+      <body className={cn(poppins.className, 'bg-slate-950 flex justify-center items-center min-h-[100dvh] p-0 m-0 overflow-hidden')}>
+        <main className="w-full h-[100dvh] overflow-y-auto overflow-x-hidden flex justify-center">
+          {/* Phone container: min-h 100dvh so bottom nav is never clipped */}
+          <div className="w-full max-w-[390px] min-h-[100dvh] bg-white shadow-2xl relative shrink-0">
+            {children}
+          </div>
+        </main>
+        <DevRoleSwitcher />
       </body>
     </html>
   )
