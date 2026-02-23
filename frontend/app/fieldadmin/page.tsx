@@ -14,6 +14,7 @@ import {
   Navigation,
 } from "lucide-react";
 import { fetchAssignedReports, updateReportStatus, BackendReport } from "@/lib/api";
+import { enqueueAction } from "@/lib/offlineQueue";
 
 function getPriorityFromImpact(impact: number | null | undefined) {
   if (impact == null) return { label: "Medium", color: "bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400" };
@@ -26,6 +27,7 @@ export default function FieldAdminPage() {
   const { theme, setTheme } = useTheme();
   const [tasks, setTasks] = useState<BackendReport[]>([]);
   const [loading, setLoading] = useState(true);
+  const [offlineToast, setOfflineToast] = useState<string | null>(null);
 
   const loadTasks = async () => {
     try {
@@ -40,21 +42,50 @@ export default function FieldAdminPage() {
 
   useEffect(() => { loadTasks(); }, []);
 
+  const showOfflineToast = (msg: string) => {
+    setOfflineToast(msg);
+    setTimeout(() => setOfflineToast(null), 3000);
+  };
+
   const handleStartWork = async (id: number) => {
     try {
+      if (!navigator.onLine) throw new Error('Offline');
       await updateReportStatus(id, "in_progress");
       await loadTasks();
     } catch (err) {
-      console.error("Failed to start work:", err);
+      console.error("Failed to start work (saving offline):", err);
+      try {
+        await enqueueAction({
+          type: 'resolution',
+          payload: { reportId: id, status: 'in_progress' },
+        });
+        // Optimistic update
+        setTasks(prev => prev.map(t => t.id === id ? { ...t, status: 'in_progress' } : t));
+        showOfflineToast('Saved offline — will sync automatically');
+      } catch (queueErr) {
+        console.error('Failed to queue offline:', queueErr);
+      }
     }
   };
 
   const handleResolve = async (id: number) => {
     try {
+      if (!navigator.onLine) throw new Error('Offline');
       await updateReportStatus(id, "resolved");
       await loadTasks();
     } catch (err) {
-      console.error("Failed to resolve:", err);
+      console.error("Failed to resolve (saving offline):", err);
+      try {
+        await enqueueAction({
+          type: 'resolution',
+          payload: { reportId: id, status: 'resolved' },
+        });
+        // Optimistic update: remove from task list
+        setTasks(prev => prev.filter(t => t.id !== id));
+        showOfflineToast('Saved offline — will sync automatically');
+      } catch (queueErr) {
+        console.error('Failed to queue offline:', queueErr);
+      }
     }
   };
 
@@ -204,6 +235,28 @@ export default function FieldAdminPage() {
             </>
           )}
         </>
+      )}
+
+      {/* Offline toast */}
+      {offlineToast && (
+        <div
+          style={{
+            position: 'fixed',
+            bottom: 100,
+            left: '50%',
+            transform: 'translateX(-50%)',
+            backgroundColor: '#78350f',
+            color: '#fef3c7',
+            padding: '10px 20px',
+            borderRadius: '12px',
+            fontSize: '13px',
+            fontWeight: 600,
+            zIndex: 50,
+            whiteSpace: 'nowrap',
+          }}
+        >
+          {offlineToast}
+        </div>
       )}
     </div>
   );

@@ -712,7 +712,7 @@ async def update_status(report_id: int, status: ReportStatus, db: AsyncSession =
     return {"status": "updated", "new_status": status}
 
 @router.post("/transcribe")
-async def transcribe_proxy(file: UploadFile = File(...)):
+async def transcribe_proxy(file: UploadFile = File(...), provider: str = None):
     try:
         audio_bytes = await file.read()
         files = {"file": (file.filename, audio_bytes, file.content_type)}
@@ -720,8 +720,13 @@ async def transcribe_proxy(file: UploadFile = File(...)):
         # Derive base URL from the classify URL
         ai_base_url = os.getenv("AI_SERVER_BASE_URL", "http://127.0.0.1:8003")
         
+        # Forward provider param if specified
+        params = {}
+        if provider:
+            params["provider"] = provider
+        
         async with httpx.AsyncClient(timeout=120.0) as client:
-            response = await client.post(f"{ai_base_url}/api/transcribe", files=files)
+            response = await client.post(f"{ai_base_url}/api/transcribe", files=files, params=params)
             response.raise_for_status()
             
             return response.json()

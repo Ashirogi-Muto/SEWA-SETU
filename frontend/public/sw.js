@@ -21,9 +21,8 @@ self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
       return cache.addAll([
-        OFFLINE_URL,
         '/',
-        '/citizen',
+        OFFLINE_URL,
         '/manifest.json'
       ])
     })
@@ -88,7 +87,7 @@ self.addEventListener('message', (event) => {
   if (event.data && event.data.type === 'OFFLINE_TRIAGE') {
     const { description } = event.data
     const category = matchOfflineKeywords(description)
-    
+
     event.ports[0].postMessage({
       category,
       offline: true,
@@ -100,11 +99,11 @@ self.addEventListener('message', (event) => {
 // Offline keyword matcher
 function matchOfflineKeywords(text) {
   if (!text) return 'misc'
-  
+
   const lower = text.toLowerCase()
   let bestMatch = 'misc'
   let maxMatches = 0
-  
+
   for (const [category, keywords] of Object.entries(OFFLINE_KEYWORDS)) {
     const matches = keywords.filter(kw => lower.includes(kw.toLowerCase())).length
     if (matches > maxMatches) {
@@ -112,7 +111,7 @@ function matchOfflineKeywords(text) {
       bestMatch = category
     }
   }
-  
+
   return bestMatch
 }
 

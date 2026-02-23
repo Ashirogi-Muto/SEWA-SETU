@@ -1,9 +1,17 @@
 import io
+import os
+from pathlib import Path
+from dotenv import load_dotenv
+
+# Load .env from ai_model_server directory (uvicorn runs from project root)
+_env_path = Path(__file__).parent / ".env"
+load_dotenv(_env_path)
+
 import requests
-from fastapi import FastAPI, HTTPException, UploadFile, File
+from fastapi import FastAPI, HTTPException, UploadFile, File, Query
 from pydantic import BaseModel, Field
-from typing import List
-from ai_model_server.stt.stt import transcribe_audio_blob
+from typing import List, Optional
+from ai_model_server.stt.stt_router import transcribe, get_stt_mode
 
 # --- TensorFlow and Image Processing Imports ---
 import numpy as np
@@ -76,15 +84,29 @@ async def classify_issue(request: AIRequest):
         
     return result
 
+@app.get("/api/transcribe")
+async def stt_status():
+    """Health/status endpoint for STT service."""
+    return {
+        "status": "operational",
+        "mode": get_stt_mode(),
+        "default_provider": os.getenv("STT_PROVIDER", "sarvam"),
+        "sarvam": "configured" if os.getenv("SARVAM_API_KEY") else "missing",
+        "legacy": "available",
+    }
+
 @app.post("/api/transcribe")
-async def transcribe_audio(file: UploadFile = File(...)):
+async def transcribe_audio(
+    file: UploadFile = File(...),
+    provider: Optional[str] = Query(None, description="STT provider: 'sarvam' or 'legacy'")
+):
     if not file.content_type.startswith("audio/") and file.content_type not in ["video/webm", "application/octet-stream"]:
         # Browsers sometimes send webm audio as video/webm or application/octet-stream
         pass 
         
     try:
         audio_bytes = await file.read()
-        result = transcribe_audio_blob(audio_bytes)  # Auto-detect language via LID
+        result = await transcribe(audio_bytes, provider=provider)
         if result is None:
             raise HTTPException(status_code=500, detail="Failed to transcribe audio.")
         return result

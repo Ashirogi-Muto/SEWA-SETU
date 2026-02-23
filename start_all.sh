@@ -85,6 +85,10 @@ tmux new-window -t "$SESSION" -n "ai-server" \
      uvicorn ai_model_server.main:app --host 0.0.0.0 --port $AI_PORT --reload; \
      echo '--- ai-server exited, press Enter ---'; read"
 
+# ── Build Next.js (required for production start) ────────────
+echo "📦  Building Next.js frontend ..."
+(cd "$PROJECT_DIR/frontend" && npm run build)
+
 # Window 2 — Super Admin Portal (Next.js Prod)
 tmux new-window -t "$SESSION" -n "admin" \
     "cd $PROJECT_DIR/frontend && \

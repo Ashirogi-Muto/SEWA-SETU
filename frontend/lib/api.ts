@@ -182,10 +182,14 @@ export async function updateReportStatus(reportId: number, status: string): Prom
 
 // --- STT ---
 
-export async function transcribeAudio(audioBlob: Blob): Promise<{ text: string }> {
+export async function transcribeAudio(
+    audioBlob: Blob,
+    provider?: 'sarvam' | 'legacy'
+): Promise<{ text: string; language?: string; model?: string }> {
     const formData = new FormData()
     formData.append('file', audioBlob, 'recording.webm')
-    return apiFetch('/api/transcribe', {
+    const params = provider ? `?provider=${provider}` : ''
+    return apiFetch(`/api/transcribe${params}`, {
         method: 'POST',
         body: formData,
     })

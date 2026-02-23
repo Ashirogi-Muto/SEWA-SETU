@@ -5,6 +5,7 @@ import { usePathname, useRouter } from "next/navigation";
 import Link from "next/link";
 import { List, Map, Bell, User, Camera } from "lucide-react";
 import { getToken } from "@/lib/api";
+import { initOfflineSync } from "@/lib/offlineSync";
 
 export default function FieldAdminLayout({
   children,
@@ -26,6 +27,12 @@ export default function FieldAdminLayout({
     }
     setAuthChecked(true);
   }, [pathname, isLogin, router]);
+
+  // Initialize offline sync engine
+  useEffect(() => {
+    const cleanup = initOfflineSync();
+    return cleanup;
+  }, []);
 
   // Don't render protected content until auth check passes
   if (!authChecked && !isLogin) return null;

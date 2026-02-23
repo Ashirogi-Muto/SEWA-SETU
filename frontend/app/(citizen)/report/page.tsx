@@ -2,9 +2,10 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
-import { MapPin, Camera, UserCircle2, Loader2, CheckCircle, Trophy, Mic } from 'lucide-react'
+import { MapPin, Camera, UserCircle2, Loader2, CheckCircle, Trophy, Mic, WifiOff, CloudUpload } from 'lucide-react'
 import VoiceRecorder from '@/components/VoiceRecorder'
 import { apiFetch } from '@/lib/api'
+import { enqueueAction, countPending } from '@/lib/offlineQueue'
 import dynamic from 'next/dynamic'
 
 const InteractiveMap = dynamic(() => import('@/components/InteractiveMap'), {
@@ -21,8 +22,10 @@ export default function ReportPage() {
   const [lat, setLat] = useState<number>(28.4744) // Default Greater Noida coords
   const [lng, setLng] = useState<number>(77.5040)
   const [imageFile, setImageFile] = useState<File | null>(null)
+  const [audioBlob, setAudioBlob] = useState<Blob | null>(null)
   const [loading, setLoading] = useState(false)
   const [result, setResult] = useState<any>(null)
+  const [pendingCount, setPendingCount] = useState(0)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   const handleLocationChange = (newLat: number, newLng: number) => {
@@ -54,6 +57,14 @@ export default function ReportPage() {
     // detectLocation()
   }, [])
 
+  // Track pending offline count
+  useEffect(() => {
+    const updateCount = () => { countPending().then(setPendingCount).catch(() => { }) }
+    updateCount()
+    window.addEventListener('offlineQueueChanged', updateCount)
+    return () => window.removeEventListener('offlineQueueChanged', updateCount)
+  }, [])
+
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (file) setImageFile(file)
@@ -69,6 +80,11 @@ export default function ReportPage() {
       if (lng != null) formData.append('longitude', lng.toString())
       formData.append('description', description)
 
+      // If explicitly offline, go straight to offline queue
+      if (!navigator.onLine) {
+        throw new Error('Device is offline')
+      }
+
       const data = await apiFetch('/api/reports', {
         method: 'POST',
         body: formData,
@@ -80,10 +96,59 @@ export default function ReportPage() {
         karmaEarned: 10
       })
     } catch (error) {
-      console.error('Submit error:', error)
+      console.error('Submit error (attempting offline save):', error)
+      // Save to offline queue
+      try {
+        await enqueueAction({
+          type: 'report',
+          payload: { description, latitude: lat, longitude: lng },
+          imageBlob: imageFile ? imageFile : undefined,
+          audioBlob: audioBlob || undefined,
+        })
+        setResult({
+          success: true,
+          offline: true,
+          hasAudio: !!audioBlob,
+        })
+      } catch (queueErr) {
+        console.error('Failed to save offline:', queueErr)
+      }
     } finally {
       setLoading(false)
     }
+  }
+
+  if (result?.success && result?.offline) {
+    // Offline success screen
+    return (
+      <div className="flex flex-col w-full pb-28 bg-[#F4F7FB] min-h-screen">
+        <header className="w-full bg-white px-5 pt-6 pb-3 flex justify-between items-center shadow-sm shrink-0 z-10">
+          <div className="flex items-center gap-2.5">
+            <img src="/logo.png" alt="SewaSetu" className="h-10 w-auto object-contain" />
+            <span className="text-xl font-bold text-[#173F70]">SewaSetu</span>
+          </div>
+          <UserCircle2 className="w-10 h-10 text-[#173F70]" strokeWidth={2} />
+        </header>
+        <div className="flex flex-col px-4 pt-6 gap-4 max-w-md mx-auto w-full">
+          <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 text-center">
+            <div className="w-16 h-16 bg-amber-100 rounded-full mx-auto mb-4 flex items-center justify-center">
+              <CloudUpload className="w-10 h-10 text-amber-600" />
+            </div>
+            <h2 className="text-xl font-bold text-gray-900 mb-2">Saved Offline</h2>
+            <p className="text-sm text-gray-600 mb-2">Your report will be submitted automatically when you&apos;re back online.</p>
+            {result.hasAudio && (
+              <p className="text-xs text-amber-700 mb-4">🎤 Voice recording will be transcribed on sync.</p>
+            )}
+            <button
+              onClick={() => router.push('/home')}
+              className="w-full bg-[#173F70] text-white font-bold py-3 rounded-xl"
+            >
+              Back to Home
+            </button>
+          </div>
+        </div>
+      </div>
+    )
   }
 
   if (result?.success) {
@@ -152,8 +217,9 @@ export default function ReportPage() {
             <div className="absolute bottom-3 right-3">
               <VoiceRecorder
                 inline={true}
-                onTranscription={(text, audioBlob) => {
+                onTranscription={(text, blob) => {
                   setDescription(prev => prev ? prev + ' ' + text : text)
+                  setAudioBlob(blob)
                 }}
               />
             </div>

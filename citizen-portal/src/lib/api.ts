@@ -258,8 +258,12 @@ export const submitNewReport = async (values: ReportPayload) => {
 
 // --- Public Report Functions ---
 
-export const transcribeAudio = async (audioBlob: Blob): Promise<{ text: string }> => {
-    const url = `${API_URL}/api/transcribe`;
+export const transcribeAudio = async (
+    audioBlob: Blob,
+    provider?: 'sarvam' | 'legacy'
+): Promise<{ text: string; language?: string; model?: string }> => {
+    const params = provider ? `?provider=${provider}` : '';
+    const url = `${API_URL}/api/transcribe${params}`;
     console.log('🌐 Submitting audio to:', url);
 
     const formData = new FormData();

@@ -71,7 +71,21 @@ export default function VoiceRecorder({ onTranscription, disabled, inline }: Voi
         setIsProcessing(true)
         setShowPreview(false)
 
-        // Call enhanced STT API
+        // Offline: skip STT API, pass raw audio blob with placeholder
+        if (typeof navigator !== 'undefined' && !navigator.onLine) {
+          setPreview({
+            transcript: '🎤 Voice recorded — will be transcribed when online',
+            confidence: 0,
+            source: 'mock',
+            preview: '🎤 Voice recorded — will be transcribed when online'
+          })
+          setShowPreview(true)
+          setIsProcessing(false)
+          setRecordingTime(0)
+          return
+        }
+
+        // Online: Call enhanced STT API
         try {
           const result = await transcribeAudio(audioBlob)
 
