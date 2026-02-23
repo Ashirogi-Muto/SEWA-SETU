@@ -471,6 +471,38 @@ async def get_alerts(db: AsyncSession = Depends(get_db), current_user: User = De
         
     return frontend_alerts
 
+@router.get("/reports/assigned")
+async def get_assigned_reports(
+    request: Request,
+    skip: int = 0,
+    limit: int = 50,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """Return open/in_progress reports sorted by impact_score (highest first) for task queues."""
+    query = (
+        select(Report)
+        .where(Report.is_active == True)
+        .where(Report.status.in_([ReportStatus.OPEN, ReportStatus.IN_PROGRESS]))
+        .order_by(desc(Report.impact_score))
+        .offset(skip)
+        .limit(limit)
+    )
+    result = await db.execute(query)
+    reports = result.scalars().all()
+
+    for r in reports:
+        db.expunge(r)
+
+    current_base = str(request.base_url).rstrip('/')
+    for report in reports:
+        if report.image_url and "http" in report.image_url:
+            if "/static/uploads/" in report.image_url:
+                filename = report.image_url.split("/static/uploads/")[-1]
+                report.image_url = f"{current_base}/static/uploads/{filename}"
+
+    return reports
+
 @router.get("/reports/all")
 async def get_all_reports(
     request: Request, # Added Request to get current host

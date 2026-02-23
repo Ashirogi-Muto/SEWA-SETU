@@ -1,8 +1,10 @@
 "use client";
 
-import { usePathname } from "next/navigation";
+import { useEffect, useState } from "react";
+import { usePathname, useRouter } from "next/navigation";
 import Link from "next/link";
 import { List, Map, Bell, User, Camera } from "lucide-react";
+import { getToken } from "@/lib/api";
 
 export default function FieldAdminLayout({
   children,
@@ -10,7 +12,23 @@ export default function FieldAdminLayout({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
+  const router = useRouter();
   const isLogin = pathname === "/fieldadmin/login";
+  const [authChecked, setAuthChecked] = useState(false);
+
+  useEffect(() => {
+    if (!isLogin) {
+      const token = getToken();
+      if (!token) {
+        router.replace("/fieldadmin/login");
+        return;
+      }
+    }
+    setAuthChecked(true);
+  }, [pathname, isLogin, router]);
+
+  // Don't render protected content until auth check passes
+  if (!authChecked && !isLogin) return null;
 
   return (
     <>
@@ -57,3 +75,4 @@ export default function FieldAdminLayout({
     </>
   );
 }
+

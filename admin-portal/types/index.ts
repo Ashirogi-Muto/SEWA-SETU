@@ -24,28 +24,6 @@ export interface KpiData {
   activeDepartments: number;
 }
 
-export interface CategoryDistribution {
-  name: string;
-  value: number;
-  color: string;
-}
-
-export interface MonthlyReports {
-  month: string;
-  total: number;
-}
-
-export interface ResolutionTimeTrend {
-  date: string;
-  time: number;
-}
-
-export interface AnalyticsData {
-  categoryDistribution: CategoryDistribution[];
-  monthlyReports: MonthlyReports[];
-  resolutionTimeTrend: ResolutionTimeTrend[];
-}
-
 
 export interface RecentReport {
   id: string;
@@ -70,15 +48,4 @@ export interface DashboardData {
 export interface PaginatedReportsResponse {
   reports: Report[];
   totalCount: number;
-}
-
-export interface MonthlyReports {
-  month: string;
-  total: number;
-  date?: Date; // Add optional date for filtering
-}
-
-export interface ResolutionTimeTrend {
-  date: string;
-  time: number;
 }

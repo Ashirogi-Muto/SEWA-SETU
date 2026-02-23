@@ -11,32 +11,12 @@ import {
   Camera,
   Play,
   X,
+  Loader2,
+  MapPin,
+  CheckCircle,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
-
-const UPCOMING_TASKS = [
-  {
-    id: 'GN-1004',
-    title: 'Water Leakage',
-    priority: 'Medium',
-    priorityStyle: 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400',
-    location: 'Sector 150, Near Ace Golfshire',
-  },
-  {
-    id: 'GN-1045',
-    title: 'Streetlight Out',
-    priority: 'Low',
-    priorityStyle: 'bg-gray-100 dark:bg-gray-700/50 text-gray-700 dark:text-gray-400',
-    location: 'Knowledge Park III, Block A',
-  },
-  {
-    id: 'GN-1088',
-    title: 'Garbage Pile-up',
-    priority: 'Medium',
-    priorityStyle: 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400',
-    location: 'Delta I, Main Chowk',
-  },
-]
+import { fetchAssignedReports, updateReportStatus, BackendReport } from '@/lib/api'
 
 const BOTTOM_NAV_ITEMS = [
   { icon: List, label: 'Tasks', path: '/admin/tasks', active: true },
@@ -45,21 +25,60 @@ const BOTTOM_NAV_ITEMS = [
   { icon: User, label: 'Profile', path: '#' },
 ]
 
+function getPriorityFromImpact(impact: number | null | undefined) {
+  if (impact == null) return { label: 'Medium', style: 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400' }
+  if (impact >= 7) return { label: 'Critical', style: 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400' }
+  if (impact >= 4) return { label: 'High', style: 'bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400' }
+  return { label: 'Medium', style: 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400' }
+}
+
 export default function AdminTasksPage() {
   const [onDuty, setOnDuty] = useState(true)
+  const [tasks, setTasks] = useState<BackendReport[]>([])
+  const [loading, setLoading] = useState(true)
   const [proofModalOpen, setProofModalOpen] = useState(false)
-  const [resolvingTaskId, setResolvingTaskId] = useState<string | null>(null)
+  const [resolvingTaskId, setResolvingTaskId] = useState<number | null>(null)
   const [slideProgress, setSlideProgress] = useState(0)
   const [isSliding, setIsSliding] = useState(false)
   const slideRef = useRef<HTMLDivElement>(null)
 
-  const openProofModal = (taskId: string) => {
+  const loadTasks = async () => {
+    try {
+      const data = await fetchAssignedReports()
+      setTasks(data || [])
+    } catch (err) {
+      console.error('Failed to load tasks:', err)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  useEffect(() => { loadTasks() }, [])
+
+  const handleStartWork = async (id: number) => {
+    try {
+      await updateReportStatus(id, 'in_progress')
+      await loadTasks()
+    } catch (err) {
+      console.error('Failed to start work:', err)
+    }
+  }
+
+  const openProofModal = (taskId: number) => {
     setResolvingTaskId(taskId)
     setProofModalOpen(true)
     setSlideProgress(0)
   }
 
-  const closeProofModal = () => {
+  const closeProofModal = async (resolved = false) => {
+    if (resolved && resolvingTaskId != null) {
+      try {
+        await updateReportStatus(resolvingTaskId, 'resolved')
+        await loadTasks()
+      } catch (err) {
+        console.error('Failed to resolve:', err)
+      }
+    }
     setProofModalOpen(false)
     setResolvingTaskId(null)
     setSlideProgress(0)
@@ -68,7 +87,7 @@ export default function AdminTasksPage() {
   const slideProgressRef = useRef(0)
   const handleSlideStart = () => setIsSliding(true)
   const handleSlideEnd = () => {
-    if (slideProgressRef.current >= 100) closeProofModal()
+    if (slideProgressRef.current >= 100) closeProofModal(true)
     else setSlideProgress(0)
     slideProgressRef.current = 0
     setIsSliding(false)
@@ -84,7 +103,7 @@ export default function AdminTasksPage() {
     const pct = getSlidePct(clientX)
     slideProgressRef.current = pct
     setSlideProgress(pct)
-    if (pct >= 100) closeProofModal()
+    if (pct >= 100) closeProofModal(true)
   }
 
   useEffect(() => {
@@ -95,10 +114,10 @@ export default function AdminTasksPage() {
       const pct = getSlidePct(clientX)
       slideProgressRef.current = pct
       setSlideProgress(pct)
-      if (pct >= 100) closeProofModal()
+      if (pct >= 100) closeProofModal(true)
     }
     const onEnd = () => {
-      if (slideProgressRef.current >= 100) closeProofModal()
+      if (slideProgressRef.current >= 100) closeProofModal(true)
       else setSlideProgress(0)
       slideProgressRef.current = 0
       setIsSliding(false)
@@ -115,7 +134,8 @@ export default function AdminTasksPage() {
     }
   }, [isSliding])
 
-  const googleMapsUrl = 'https://www.google.com/maps/search/?api=1&query=Alpha+II+Main+Road'
+  const urgentTask = tasks[0] || null
+  const queueTasks = tasks.slice(1)
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-[#0b1120] pb-24">
@@ -140,77 +160,121 @@ export default function AdminTasksPage() {
         </button>
       </header>
 
-      {/* Urgent Job Hero Card */}
-      <section className="m-4 p-5 bg-red-50 dark:bg-red-900/10 border-l-4 border-red-500 rounded-r-xl shadow-sm">
-        <div className="flex justify-between items-start gap-2 mb-2">
-          <h2 className="text-lg font-bold text-red-600 dark:text-red-400">
-            Critical Pothole
-          </h2>
-          <span className="font-mono text-sm text-gray-600 dark:text-gray-400">
-            #GN-849
-          </span>
+      {loading ? (
+        <div className="flex items-center justify-center py-20">
+          <Loader2 className="w-6 h-6 animate-spin text-gray-400" />
+          <span className="ml-2 text-sm text-gray-500">Loading tasks...</span>
         </div>
-        <p className="text-base font-semibold text-gray-900 dark:text-white mb-1">
-          Alpha II, Main Road
-        </p>
-        <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
-          📍 1.2km away
-        </p>
-        <div className="flex flex-col gap-3">
-          <a
-            href={googleMapsUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="min-h-[48px] w-full flex items-center justify-center gap-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold transition-colors"
-          >
-            <Navigation className="w-5 h-5" />
-            Navigate
-          </a>
-          <button
-            type="button"
-            className="min-h-[48px] w-full flex items-center justify-center gap-2 rounded-xl bg-gray-900 dark:bg-white text-white dark:text-gray-900 font-semibold hover:opacity-90 transition-opacity"
-          >
-            <Play className="w-5 h-5" />
-            Start Work
-          </button>
+      ) : tasks.length === 0 ? (
+        <div className="flex flex-col items-center justify-center py-20 text-gray-500 dark:text-gray-400">
+          <CheckCircle className="w-12 h-12 mb-3 text-emerald-400" />
+          <p className="font-semibold">All caught up!</p>
+          <p className="text-sm">No pending tasks at the moment.</p>
         </div>
-      </section>
-
-      {/* Upcoming Tasks */}
-      <h3 className="px-4 mt-6 mb-3 text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider">
-        Queue (3)
-      </h3>
-      <ul className="px-0">
-        {UPCOMING_TASKS.map((task) => (
-          <li key={task.id} className="mx-4 mb-4">
-            <div className="p-4 bg-white dark:bg-[#1e293b] border border-gray-100 dark:border-gray-700 rounded-xl shadow-sm flex flex-col gap-3">
-              <div className="flex justify-between items-center gap-2">
-                <span className="font-bold text-gray-900 dark:text-white">
-                  {task.title}
-                </span>
-                <span
-                  className={cn(
-                    'text-xs font-semibold px-2 py-1 rounded-full',
-                    task.priorityStyle
-                  )}
-                >
-                  Priority: {task.priority}
+      ) : (
+        <>
+          {/* Urgent Job Hero Card */}
+          {urgentTask && (
+            <section className="m-4 p-5 bg-red-50 dark:bg-red-900/10 border-l-4 border-red-500 rounded-r-xl shadow-sm">
+              <div className="flex justify-between items-start gap-2 mb-2">
+                <h2 className="text-lg font-bold text-red-600 dark:text-red-400">
+                  {getPriorityFromImpact(urgentTask.impact_score).label} — {urgentTask.category || 'Issue'}
+                </h2>
+                <span className="font-mono text-sm text-gray-600 dark:text-gray-400">
+                  #R-{urgentTask.id}
                 </span>
               </div>
-              <p className="text-sm text-gray-600 dark:text-gray-400">
-                {task.location}
+              <p className="text-base font-semibold text-gray-900 dark:text-white mb-1 line-clamp-2">
+                {urgentTask.description}
               </p>
-              <button
-                type="button"
-                onClick={() => openProofModal(task.id)}
-                className="min-h-[44px] w-full flex items-center justify-center gap-2 rounded-xl border-2 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 font-medium hover:bg-gray-50 dark:hover:bg-white/5 transition-colors"
-              >
-                Mark Resolved
-              </button>
-            </div>
-          </li>
-        ))}
-      </ul>
+              <p className="text-sm text-gray-500 dark:text-gray-400 mb-4 flex items-center gap-1">
+                <MapPin className="w-4 h-4" />
+                {urgentTask.location_name || (urgentTask.latitude ? `${urgentTask.latitude.toFixed(4)}, ${urgentTask.longitude.toFixed(4)}` : 'Location attached')}
+              </p>
+              <div className="flex flex-col gap-3">
+                {urgentTask.latitude && (
+                  <a
+                    href={`https://www.google.com/maps/search/?api=1&query=${urgentTask.latitude},${urgentTask.longitude}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="min-h-[48px] w-full flex items-center justify-center gap-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold transition-colors"
+                  >
+                    <Navigation className="w-5 h-5" />
+                    Navigate
+                  </a>
+                )}
+                {urgentTask.status === 'open' ? (
+                  <button
+                    type="button"
+                    onClick={() => handleStartWork(urgentTask.id)}
+                    className="min-h-[48px] w-full flex items-center justify-center gap-2 rounded-xl bg-gray-900 dark:bg-white text-white dark:text-gray-900 font-semibold hover:opacity-90 transition-opacity"
+                  >
+                    <Play className="w-5 h-5" />
+                    Start Work
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => openProofModal(urgentTask.id)}
+                    className="min-h-[48px] w-full flex items-center justify-center gap-2 rounded-xl border-2 border-emerald-500 text-emerald-600 dark:text-emerald-400 font-semibold hover:bg-emerald-50 dark:hover:bg-emerald-900/20 transition-colors"
+                  >
+                    Mark Resolved
+                  </button>
+                )}
+              </div>
+            </section>
+          )}
+
+          {/* Queue */}
+          {queueTasks.length > 0 && (
+            <>
+              <h3 className="px-4 mt-6 mb-3 text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider">
+                Queue ({queueTasks.length})
+              </h3>
+              <ul className="px-0">
+                {queueTasks.map((task) => {
+                  const priority = getPriorityFromImpact(task.impact_score)
+                  return (
+                    <li key={task.id} className="mx-4 mb-4">
+                      <div className="p-4 bg-white dark:bg-[#1e293b] border border-gray-100 dark:border-gray-700 rounded-xl shadow-sm flex flex-col gap-3">
+                        <div className="flex justify-between items-center gap-2">
+                          <span className="font-bold text-gray-900 dark:text-white line-clamp-1">
+                            {task.category || 'Issue'} — R-{task.id}
+                          </span>
+                          <span className={cn('text-xs font-semibold px-2 py-1 rounded-full shrink-0', priority.style)}>
+                            {priority.label}
+                          </span>
+                        </div>
+                        <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-2">
+                          {task.description}
+                        </p>
+                        {task.status === 'open' ? (
+                          <button
+                            type="button"
+                            onClick={() => handleStartWork(task.id)}
+                            className="min-h-[44px] w-full flex items-center justify-center gap-2 rounded-xl bg-gray-900 dark:bg-white text-white dark:text-gray-900 font-medium transition-colors"
+                          >
+                            <Play className="w-4 h-4" />
+                            Start Work
+                          </button>
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={() => openProofModal(task.id)}
+                            className="min-h-[44px] w-full flex items-center justify-center gap-2 rounded-xl border-2 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 font-medium hover:bg-gray-50 dark:hover:bg-white/5 transition-colors"
+                          >
+                            Mark Resolved
+                          </button>
+                        )}
+                      </div>
+                    </li>
+                  )
+                })}
+              </ul>
+            </>
+          )}
+        </>
+      )}
 
       {/* Proof of Work Modal */}
       {proofModalOpen && (
@@ -228,7 +292,7 @@ export default function AdminTasksPage() {
               </h3>
               <button
                 type="button"
-                onClick={closeProofModal}
+                onClick={() => closeProofModal()}
                 className="min-h-[44px] min-w-[44px] flex items-center justify-center rounded-full text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700"
                 aria-label="Close"
               >
@@ -236,16 +300,6 @@ export default function AdminTasksPage() {
               </button>
             </div>
             <div className="p-4 space-y-4">
-              <div>
-                <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase mb-2">
-                  Before (original report)
-                </p>
-                <div className="h-24 rounded-xl bg-gray-100 dark:bg-gray-800 flex items-center justify-center border border-gray-200 dark:border-gray-700">
-                  <span className="text-sm text-gray-500 dark:text-gray-400">
-                    Thumbnail
-                  </span>
-                </div>
-              </div>
               <div>
                 <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase mb-2">
                   After (your fix)

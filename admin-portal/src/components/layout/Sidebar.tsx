@@ -1,10 +1,9 @@
 // src/components/layout/Sidebar.tsx
 import { NavLink, useLocation } from "react-router-dom";
-import { 
-  BarChart3, 
-  FileText, 
-  Home, 
-  Users, 
+import {
+  FileText,
+  Home,
+  Users,
   LogOut,
   ChevronLeft,
   ChevronRight,
@@ -16,7 +15,6 @@ import { cn } from "@/lib/utils";
 const navigation = [
   { name: "Dashboard", href: "/", icon: Home },
   { name: "Reports", href: "/reports", icon: FileText },
-  { name: "Analytics", href: "/analytics", icon: BarChart3 },
   { name: "Departments", href: "/departments", icon: Users },
 ];
 
@@ -29,7 +27,7 @@ export function Sidebar({ collapsed, setCollapsed }: SidebarProps) {
   const location = useLocation();
 
   return (
-    <aside 
+    <aside
       className={cn(
         "hidden md:flex h-screen flex-col transition-all duration-300 border-r bg-card",
         collapsed ? "w-16" : "w-64"

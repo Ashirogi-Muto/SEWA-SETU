@@ -5,12 +5,12 @@ import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "recharts";
-import { 
-  Shield, 
-  MapPin, 
-  AlertCircle, 
-  CheckCircle2, 
-  Clock, 
+import {
+  Shield,
+  MapPin,
+  AlertCircle,
+  CheckCircle2,
+  Clock,
   TrendingUp,
   Activity,
   LogOut,
@@ -19,12 +19,12 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { 
-  Select, 
-  SelectContent, 
-  SelectItem, 
-  SelectTrigger, 
-  SelectValue 
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue
 } from "@/components/ui/select";
 import { ScrollArea } from "@/components/ui/scroll-area";
 
@@ -163,7 +163,7 @@ const Admin = () => {
       </header>
 
       <div className="container mx-auto px-4 py-6">
-        
+
         {/* Top Stats Bar */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
           <Card className="bg-white shadow-lg">
@@ -225,7 +225,7 @@ const Admin = () => {
 
         {/* Main Command Center - Split View */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
-          
+
           {/* Left - Live Map */}
           <div className="lg:col-span-2">
             <Card className="bg-white shadow-lg h-[600px]">
@@ -327,7 +327,7 @@ const Admin = () => {
                                 {formatDate(report.created_at)}
                               </span>
                             </div>
-                            
+
                             <p className="text-sm text-slate-900 font-medium mb-3 line-clamp-2">
                               {report.description}
                             </p>
@@ -346,7 +346,7 @@ const Admin = () => {
                                   <SelectItem value="resolved">Resolved</SelectItem>
                                 </SelectContent>
                               </Select>
-                              
+
                               {report.image_url && (
                                 <Button
                                   variant="ghost"
@@ -371,7 +371,7 @@ const Admin = () => {
 
         {/* Analytics Section */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          
+
           {/* Issues by Category */}
           <Card className="bg-white shadow-lg">
             <CardHeader>
@@ -411,7 +411,7 @@ const Admin = () => {
                   <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
                   <XAxis dataKey="timeframe" tick={{ fill: '#64748b', fontSize: 12 }} />
                   <YAxis tick={{ fill: '#64748b', fontSize: 12 }} />
-                  <Tooltip 
+                  <Tooltip
                     contentStyle={{
                       backgroundColor: 'white',
                       border: '1px solid #e2e8f0',
@@ -421,7 +421,7 @@ const Admin = () => {
                   <Bar dataKey="count" fill="#10b981" radius={[8, 8, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
-              
+
               {/* City Health Indicator */}
               <div className="mt-4 p-3 rounded-lg bg-green-50 border border-green-200">
                 <div className="flex items-center justify-between">

@@ -163,6 +163,10 @@ export async function fetchMyReports(): Promise<BackendReport[]> {
     return apiFetch<BackendReport[]>('/api/reports')
 }
 
+export async function fetchAssignedReports(): Promise<BackendReport[]> {
+    return apiFetch<BackendReport[]>('/api/reports/assigned')
+}
+
 export async function submitReport(formData: FormData): Promise<any> {
     return apiFetch('/api/reports', {
         method: 'POST',

@@ -3,7 +3,6 @@ import { toast } from "sonner";
 import {
   DashboardData,
   PaginatedReportsResponse,
-  AnalyticsData,
   Report,
   ReportStatus
 } from "../../types";
@@ -177,47 +176,6 @@ export const updateReportStatus = async ({ id, status }: { id: string; status: R
   });
 };
 
-// Analytics API functions
-export const fetchAnalytics = async (): Promise<AnalyticsData> => {
-  const data = await apiFetch<{
-    total_reports: number;
-    reports_by_category: Record<string, number>;
-    reports_by_status: Record<string, number>;
-  }>("/api/analytics");
-
-  // Transform backend data to match frontend expectations
-  const categoryDistribution = Object.entries(data.reports_by_category).map(([name, value], index) => ({
-    name,
-    value,
-    color: ["#0A5EB0", "#F57C00", "#2E7D32", "#9C27B0"][index % 4]
-  }));
-
-  // Mock monthly reports and resolution trend for now
-  // These should be implemented in the backend
-  const monthlyReports = [
-    { month: "Aug", total: 89 },
-    { month: "Sep", total: 112 },
-    { month: "Oct", total: 134 },
-    { month: "Nov", total: 156 },
-    { month: "Dec", total: 143 },
-    { month: "Jan", total: 167 }
-  ];
-
-  const resolutionTimeTrend = [
-    { date: "Week 1", time: 4.2 },
-    { date: "Week 2", time: 3.8 },
-    { date: "Week 3", time: 3.5 },
-    { date: "Week 4", time: 3.2 },
-    { date: "Week 5", time: 2.9 },
-    { date: "Week 6", time: 3.1 }
-  ];
-
-  return {
-    categoryDistribution,
-    monthlyReports,
-    resolutionTimeTrend
-  };
-};
 
 // Departments API functions
 export const fetchDepartments = async (): Promise<Department[]> => {
