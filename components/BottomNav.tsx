@@ -8,6 +8,8 @@ export default function BottomNav() {
   const pathname = usePathname()
   const router = useRouter()
 
+  if (pathname === '/login') return null
+
   const navItems = [
     { icon: Home, label: 'Home', path: '/home' },
     { icon: FileText, label: 'Reports', path: '/history' },

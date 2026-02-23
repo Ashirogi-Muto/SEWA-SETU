@@ -7,7 +7,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     <div className="fixed inset-0 z-[100] flex h-screen w-full overflow-hidden">
       <Sidebar />
       {/* Main: bg-slate-50 + content (header lives in page for client state) */}
-      <main className="flex-1 flex flex-col min-w-0 bg-[#F8FAFC] overflow-y-auto overflow-x-hidden">
+      <main className="flex-1 flex flex-col min-w-0 min-h-0 bg-[#F8FAFC] dark:bg-[#050A14] overflow-y-auto overflow-x-hidden">
         {children}
       </main>
     </div>

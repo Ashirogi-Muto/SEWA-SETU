@@ -116,3 +116,13 @@ main {
 .leaflet-control-attribution {
   font-size: 10px;
 }
+
+/* Sidebar label fade-in when expanding */
+@keyframes sidebarFadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}

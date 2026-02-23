@@ -2,14 +2,13 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
+import Image from 'next/image'
 import { usePathname } from 'next/navigation'
 import {
   LayoutDashboard,
   Map,
   Building2,
   AlertTriangle,
-  Landmark,
-  Menu,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -21,48 +20,31 @@ const navItems = [
 ]
 
 export default function Sidebar() {
-  const [isCollapsed, setIsCollapsed] = useState(false)
+  const [isHovered, setIsHovered] = useState(false)
   const pathname = usePathname()
 
   return (
     <aside
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
       className={cn(
-        'bg-[#0B1727] text-slate-300 flex flex-col shrink-0 transition-[width] duration-300 ease-in-out overflow-hidden',
-        isCollapsed ? 'w-20' : 'w-64'
+        'overflow-hidden transition-all duration-300 ease-in-out flex flex-col shrink-0',
+        'bg-white dark:bg-[#050A14] border-r border-gray-200 dark:border-white/10',
+        isHovered ? 'w-64' : 'w-20'
       )}
     >
-      {/* Logo + toggle */}
-      <div className="p-4 border-b border-white/10 flex items-center justify-between gap-2 min-h-[73px]">
-        <div className="flex items-center gap-2 min-w-0">
-          <Landmark className="w-7 h-7 text-white shrink-0" />
-          {!isCollapsed && (
-            <span className="text-white font-semibold text-lg tracking-tight truncate">
-              SewaSetu
-            </span>
-          )}
+      {/* Logo */}
+      <div className="p-4 border-b border-gray-200 dark:border-white/10 flex items-center min-h-[73px]">
+        <div className="flex items-center min-w-0 overflow-hidden">
+          <Image
+            src="/logo.png"
+            alt="SewaSetu Logo"
+            width={isHovered ? 140 : 40}
+            height={40}
+            className="object-contain transition-all duration-300 ease-in-out"
+          />
         </div>
-        <button
-          type="button"
-          onClick={() => setIsCollapsed((c) => !c)}
-          className="p-2 rounded-lg text-slate-400 hover:bg-white/10 hover:text-slate-200 transition-colors shrink-0"
-          aria-label={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-        >
-          <Menu className="w-5 h-5" />
-        </button>
       </div>
-
-      {/* Status pill - hidden when collapsed */}
-      {!isCollapsed && (
-        <div className="px-4 pt-4">
-          <div className="flex items-center gap-2 px-3 py-2 rounded-full bg-black/30 w-fit">
-            <span
-              className="relative flex h-2 w-2 rounded-full bg-emerald-500 shadow-[0_0_10px_rgba(34,197,94,0.3)]"
-              aria-hidden
-            />
-            <span className="text-xs text-slate-300 font-medium">System Live</span>
-          </div>
-        </div>
-      )}
 
       {/* Nav */}
       <nav className="flex-1 p-4 flex flex-col gap-1">
@@ -73,17 +55,26 @@ export default function Sidebar() {
             <Link
               key={href}
               href={href}
-              title={isCollapsed ? label : undefined}
+              title={!isHovered ? label : undefined}
               className={cn(
                 'flex items-center gap-3 rounded-xl text-sm font-medium transition-colors',
-                isCollapsed ? 'px-3 py-3 justify-center' : 'px-4 py-3',
+                isHovered ? 'px-4 py-3' : 'px-3 py-3 justify-center',
                 isActive
-                  ? 'bg-teal-900/60 text-cyan-300 border border-cyan-500/40'
-                  : 'text-slate-400 hover:bg-white/5 hover:text-slate-200'
+                  ? 'bg-cyan-50 dark:bg-cyan-900/20 text-cyan-700 dark:text-cyan-400 border border-cyan-200 dark:border-cyan-800/50'
+                  : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-white/5'
               )}
             >
-              <Icon className={cn('w-5 h-5 shrink-0', isActive && 'text-cyan-300')} />
-              {!isCollapsed && <span>{label}</span>}
+              <Icon
+                className={cn(
+                  'w-5 h-5 shrink-0',
+                  isActive && 'text-cyan-600 dark:text-cyan-400'
+                )}
+              />
+              {isHovered && (
+                <span className="text-sm font-medium whitespace-nowrap opacity-0 animate-[sidebarFadeIn_0.3s_ease-out_forwards] [animation-fill-mode:forwards]">
+                  {label}
+                </span>
+              )}
             </Link>
           )
         })}

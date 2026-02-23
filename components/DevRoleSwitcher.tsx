@@ -24,7 +24,7 @@ export default function DevRoleSwitcher() {
         <Monitor className="w-5 h-5" />
       </Link>
       <Link
-        href="/fieldadmin"
+        href="/fieldadmin/login"
         className="flex items-center justify-center w-10 h-10 rounded-full text-white hover:bg-white/20 transition-colors"
         title="Field Admin Portal"
       >

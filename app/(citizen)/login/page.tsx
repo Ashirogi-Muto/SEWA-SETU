@@ -95,7 +95,7 @@ export default function LoginPage() {
                   <Button
                     onClick={handleSendOTP}
                     disabled={phone.length !== 10}
-                    className="w-full h-16 text-xl font-bold shadow-2xl rounded-2xl bg-gradient-to-r from-green-500 via-emerald-500 to-blue-600 hover:from-green-600 hover:to-blue-700 transform hover:-translate-y-1 transition-all duration-300 ring-4 ring-green-200/50"
+                    className="w-full h-16 text-xl font-bold rounded-2xl bg-[#1e3a8a] text-white hover:bg-blue-900 transition-colors shadow-md"
                   >
                     Send OTP
                     <ArrowRight className="ml-2 w-6 h-6" />
@@ -148,7 +148,7 @@ export default function LoginPage() {
               )}
               
               <p className="text-xs text-center text-slate-500 font-medium pt-4 opacity-80">
-                AI-Powered Civic Bridge for Greater Noida
+                AI-Powered Civic Bridge
               </p>
             </CardContent>
           </div>
