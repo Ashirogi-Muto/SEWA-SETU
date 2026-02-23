@@ -52,7 +52,7 @@ sewasetu.db
 *.joblib
 
 # --- Frontend Specific (Node.js / React) ---
-/node_modules/
+node_modules/
 /admin-portal/dist/
 /admin-portal/build/
 /citizen-portal/dist/
@@ -86,3 +86,21 @@ config.json
 **/test_*.sh
 **/*.bat.env
 .env
+
+# Custom project ignores
+.venv/
+backend/.venv/
+temp/
+token.txt
+backend/uploads/*
+!backend/uploads/.gitkeep
+
+# Frontend specific overrides
+frontend/.next/
+frontend/out/
+frontend/build/
+frontend/coverage/
+frontend/*.tsbuildinfo
+frontend/next-env.d.ts
+frontend/prisma/*.db
+frontend/prisma/*.db-journal

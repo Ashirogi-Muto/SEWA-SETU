@@ -6,9 +6,15 @@ from typing import Optional
 
 # --- Configuration ---
 # We load the secret key from the environment variables
-SECRET_KEY = os.getenv("API_SECRET_KEY", "a-default-secret-key-that-is-long")
-if len(SECRET_KEY) < 32:
-    raise ValueError("SECRET_KEY must be at least 32 characters long for security")
+SECRET_KEY = os.getenv("API_SECRET_KEY", "")
+if not SECRET_KEY or len(SECRET_KEY) < 32:
+    import warnings
+    warnings.warn(
+        "API_SECRET_KEY is not set or too short. Using random key (tokens won't survive restarts).",
+        stacklevel=2
+    )
+    import secrets
+    SECRET_KEY = secrets.token_hex(32)
     
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30 # The token will be valid for 30 minutes

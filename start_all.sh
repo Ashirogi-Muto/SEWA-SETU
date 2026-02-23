@@ -55,7 +55,7 @@ pip install -q -r "$PROJECT_DIR/backend/requirements.txt" 2>/dev/null
 pip install -q -r "$PROJECT_DIR/ai_model_server/requirements.txt" 2>/dev/null
 
 # ── Ensure node_modules ───────────────────────────────────────
-for portal in admin-portal citizen-portal; do
+for portal in frontend; do
     if [ ! -d "$PROJECT_DIR/$portal/node_modules" ]; then
         echo "📦  Installing $portal dependencies ..."
         (cd "$PROJECT_DIR/$portal" && npm install)
@@ -85,16 +85,16 @@ tmux new-window -t "$SESSION" -n "ai-server" \
      uvicorn ai_model_server.main:app --host 0.0.0.0 --port $AI_PORT --reload; \
      echo '--- ai-server exited, press Enter ---'; read"
 
-# Window 2 — Admin Portal (Vite dev with HMR)
+# Window 2 — Super Admin Portal (Next.js Prod)
 tmux new-window -t "$SESSION" -n "admin" \
-    "cd $PROJECT_DIR/admin-portal && \
-     npm run dev -- --host --port $ADMIN_PORT; \
+    "cd $PROJECT_DIR/frontend && \
+     npm run start -- -p $ADMIN_PORT; \
      echo '--- admin-portal exited, press Enter ---'; read"
 
-# Window 3 — Citizen Portal (Vite dev with HMR)
+# Window 3 — Citizen Portal (Next.js Prod)
 tmux new-window -t "$SESSION" -n "citizen" \
-    "cd $PROJECT_DIR/citizen-portal && \
-     npm run dev -- --host --port $CITIZEN_PORT; \
+    "cd $PROJECT_DIR/frontend && \
+     npm run start -- -p $CITIZEN_PORT; \
      echo '--- citizen-portal exited, press Enter ---'; read"
 
 # ── Done ──────────────────────────────────────────────────────
@@ -106,7 +106,7 @@ echo ""
 echo "  🌍 Backend API:     http://$PUBLIC_IP:$BACKEND_PORT"
 echo "  📄 API Docs:        http://$PUBLIC_IP:$BACKEND_PORT/docs"
 echo "  🤖 AI Server:       http://$PUBLIC_IP:$AI_PORT"
-echo "  👑 Admin Portal:    http://$PUBLIC_IP:$ADMIN_PORT"
+echo "  👑 Super Admin:     http://$PUBLIC_IP:$ADMIN_PORT"
 echo "  👥 Citizen Portal:  http://$PUBLIC_IP:$CITIZEN_PORT"
 echo ""
 echo "  📎 Attach to logs:  tmux attach -t $SESSION"

@@ -1,9 +1,8 @@
 from fastapi import WebSocket
 from typing import List, Dict, Any
 import json
-import logging
-
-logger = logging.getLogger("sewasetu")
+from backend.logging_config import get_logger
+logger = get_logger("websocket", "websocket")
 
 class ConnectionManager:
     def __init__(self):

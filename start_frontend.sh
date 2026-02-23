@@ -7,25 +7,21 @@ echo "----------------------------------------"
 
 # 1. Admin Portal (Port 3005)
 echo "👑 Starting Admin Portal on Port 3005..."
-cd admin-portal
+cd frontend
 if [ ! -d "node_modules" ]; then
     echo "📦 Installing Admin Portal dependencies..."
     npm install
 fi
 # Start in background
-npm run dev -- --host --port 3005 > ../admin.log 2>&1 &
+npm run dev -- -p 3005 > ../admin.log 2>&1 &
 ADMIN_PID=$!
 cd ..
 
 # 2. Citizen Portal (Port 3006)
 echo "👥 Starting Citizen Portal on Port 3006..."
-cd citizen-portal
-if [ ! -d "node_modules" ]; then
-    echo "📦 Installing Citizen Portal dependencies..."
-    npm install
-fi
+cd frontend
 # Start in background
-npm run dev -- --host --port 3006 > ../citizen.log 2>&1 &
+npm run dev -- -p 3006 > ../citizen.log 2>&1 &
 CITIZEN_PID=$!
 cd ..
 

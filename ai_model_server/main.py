@@ -17,14 +17,14 @@ model = MobileNetV2(weights='imagenet')
 def map_prediction_to_category(raw_prediction_label: str) -> str:
     label = raw_prediction_label.lower()
     if any(keyword in label for keyword in ['truck', 'car', 'bus', 'ambulance', 'motorcycle', 'convertible', 'wreck']):
-        return "Traffic Obstruction"
+        return "Public Transport"
     if any(keyword in label for keyword in ['trash_can', 'garbage', 'waste', 'bin', 'dumpster']):
-        return "Waste Management"
+        return "Sanitation/Garbage"
     if any(keyword in label for keyword in ['street_lamp', 'spotlight', 'street_sign']):
-        return "Streetlight Outage"
+        return "Street Lighting"
     if any(keyword in label for keyword in ['pothole', 'manhole_cover']):
-        return "Pothole"
-    return "General Inquiry"
+        return "Roads/Potholes"
+    return "Others"
 
 # --- 3. Schemas ---
 class AIRequest(BaseModel):

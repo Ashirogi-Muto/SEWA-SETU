@@ -1,16 +1,14 @@
 import httpx
-import json
-import random
-import logging
-from typing import List, Dict, Any
 
-logger = logging.getLogger("sewasetu")
+from backend.logging_config import get_logger
+logger = get_logger("ai_service", "ai_service")
+from typing import List, Dict, Any
 
 import os
 
 # Configuration
 LOCAL_AI_URL = os.getenv("AI_SERVER_URL", "http://127.0.0.1:8003/api/classify")
-AI_TIMEOUT = 3.0  # seconds
+AI_TIMEOUT = float(os.getenv("AI_TIMEOUT", "3.0"))
 
 # ImageNet to Civic Category Mapping
 IMAGENET_MAPPING = {
@@ -54,27 +52,33 @@ async def classify_report_local(description: str, image_urls: List[str]) -> Dict
     if image_urls:
         try:
             async with httpx.AsyncClient() as client:
+                ai_target_url = image_urls[0]
+                
+                # Prevent network loopback timeout: rewrite public IP to 127.0.0.1
+                if "http://" in ai_target_url and "127.0.0.1" not in ai_target_url and "localhost" not in ai_target_url:
+                    import urllib.parse
+                    parsed = urllib.parse.urlparse(ai_target_url)
+                    port = os.getenv("BACKEND_PORT", "8002")
+                    ai_target_url = f"http://127.0.0.1:{port}{parsed.path}"
+
                 # We only send the first image for classification to save time
                 response = await client.post(
                     LOCAL_AI_URL,
-                    json={"description": description, "image_urls": [image_urls[0]]},
+                    json={"description": description, "image_urls": [ai_target_url]},
                     timeout=AI_TIMEOUT
                 )
                 
                 if response.status_code == 200:
                     data = response.json()
-                    raw_category = data.get("category", "General Inquiry")
+                    raw_category = data.get("category", "Others")
                     confidence = data.get("confidence", 0.0)
                     
-                    # Map raw ImageNet/Server labels to our categories
-                    mapped_category = IMAGENET_MAPPING.get(raw_category.lower().replace(" ", "_"), "Others")
+                    valid_categories = ["Roads/Potholes", "Sanitation/Garbage", "Street Lighting", "Public Transport", "Law & Order", "Medical Emergency", "Water Supply", "Electrical Safety"]
                     
-                    # If the server already returns our categories (modified server), use it
-                    if raw_category in ["Street Lighting", "Pothole", "Waste Management"]:
-                        # Map these explicitly
-                        if raw_category == "Pothole": mapped_category = "Roads/Potholes"
-                        elif raw_category == "Waste Management": mapped_category = "Sanitation/Garbage"
-                        elif raw_category == "Streetlight Outage": mapped_category = "Street Lighting"
+                    if raw_category in valid_categories:
+                        mapped_category = raw_category
+                    else:
+                        mapped_category = IMAGENET_MAPPING.get(raw_category.lower().replace(" ", "_"), "Others")
                     
                     if mapped_category != "Others":
                         ai_result = {

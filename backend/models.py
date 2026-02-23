@@ -8,11 +8,6 @@ from sqlalchemy.orm import relationship, backref
 from sqlalchemy.sql import func
 from backend.database import Base
 
-# ... (rest of imports)
-
-
-
-    # Indexes for Geo-Performance
 # --- Enums ---
 class ReportStatus(str, enum.Enum):
     OPEN = "open"
@@ -25,6 +20,11 @@ class UserRole(str, enum.Enum):
     DEPARTMENT = "department_user"
     CITIZEN = "citizen"
 
+class AlertType(str, enum.Enum):
+    URGENT = "Urgent"
+    UPDATES = "Updates"
+    GENERAL = "General"
+
 # --- Models ---
 
 class User(Base):
@@ -35,12 +35,14 @@ class User(Base):
     name = Column(String, nullable=True)
     password_hash = Column(String, nullable=True) # Optional for "Instant Auth"
     role = Column(Enum(UserRole), default=UserRole.CITIZEN)
+    karma = Column(Integer, default=0)
     department_id = Column(Integer, ForeignKey("departments.id"), nullable=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     
     # Relationships
     reports = relationship("Report", back_populates="user")
     department = relationship("Department", back_populates="users")
+    alerts = relationship("Alert", back_populates="user")
 
 
 class Department(Base):
@@ -66,8 +68,10 @@ class Report(Base):
     description = Column(Text, nullable=False)
     latitude = Column(Float, nullable=False)
     longitude = Column(Float, nullable=False)
+    location_name = Column(String, default="Greater Noida")
     category = Column(String, default="Uncategorized")
     image_url = Column(String, nullable=True)
+    image_hash = Column(String, nullable=True)  # Perceptual hash for duplicate detection
     
     # Status & Lifecycle
     status = Column(Enum(ReportStatus), default=ReportStatus.OPEN, index=True)
@@ -100,3 +104,18 @@ class Report(Base):
     __table_args__ = (
         Index('idx_report_geo', 'latitude', 'longitude'),
     )
+
+class Alert(Base):
+    __tablename__ = "alerts"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=True, index=True)  # Nullable for system alerts
+    type = Column(Enum(AlertType), default=AlertType.GENERAL)
+    title = Column(String, nullable=False)
+    message = Column(Text, nullable=False)
+    icon = Column(String, default="bell")
+    is_read = Column(Boolean, default=False)
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), index=True)
+
+    # Relationships
+    user = relationship("User", back_populates="alerts")

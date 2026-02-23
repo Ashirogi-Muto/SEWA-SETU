@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timezone
 from backend.models import Report
 
 def get_days_open(report: Report) -> float:
@@ -6,8 +6,8 @@ def get_days_open(report: Report) -> float:
     if not report.created_at:
         return 0.0
     
-    # Use timezone-aware now if created_at is timezone-aware
-    now = datetime.now(report.created_at.tzinfo) if report.created_at.tzinfo else datetime.utcnow()
+    # Use timezone-aware now
+    now = datetime.now(report.created_at.tzinfo) if report.created_at.tzinfo else datetime.now(timezone.utc)
     delta = now - report.created_at
     return max(0.0, delta.total_seconds() / 86400.0)
 
