@@ -77,7 +77,10 @@ export default function ProfilePage() {
 
       {/* Settings Menu List */}
       <div className="mx-4 mt-2 bg-white rounded-[20px] shadow-sm border border-gray-100 overflow-hidden shrink-0 flex flex-col divide-y divide-gray-100">
-        <button className="flex items-center justify-between w-full p-4 hover:bg-gray-50 transition-colors text-left">
+        <button
+          onClick={() => router.push('/profile/edit')}
+          className="flex items-center justify-between w-full p-4 hover:bg-gray-50 transition-colors text-left"
+        >
           <div className="flex items-center">
             <div className="rounded-full p-2 mr-3 bg-blue-100 text-blue-600">
               <UserCog className="w-5 h-5" />
@@ -86,7 +89,10 @@ export default function ProfilePage() {
           </div>
           <ChevronRight className="w-5 h-5 text-gray-400 shrink-0" />
         </button>
-        <button className="flex items-center justify-between w-full p-4 hover:bg-gray-50 transition-colors text-left">
+        <button
+          onClick={() => router.push('/profile/language')}
+          className="flex items-center justify-between w-full p-4 hover:bg-gray-50 transition-colors text-left"
+        >
           <div className="flex items-center">
             <div className="rounded-full p-2 mr-3 bg-[#173F70]/10 text-[#173F70]">
               <Globe className="w-5 h-5" />
@@ -95,7 +101,10 @@ export default function ProfilePage() {
           </div>
           <ChevronRight className="w-5 h-5 text-gray-400 shrink-0" />
         </button>
-        <button className="flex items-center justify-between w-full p-4 hover:bg-gray-50 transition-colors text-left">
+        <button
+          onClick={() => router.push('/profile/notifications')}
+          className="flex items-center justify-between w-full p-4 hover:bg-gray-50 transition-colors text-left"
+        >
           <div className="flex items-center">
             <div className="rounded-full p-2 mr-3 bg-orange-100 text-orange-600">
               <Bell className="w-5 h-5" />
@@ -104,7 +113,10 @@ export default function ProfilePage() {
           </div>
           <ChevronRight className="w-5 h-5 text-gray-400 shrink-0" />
         </button>
-        <button className="flex items-center justify-between w-full p-4 hover:bg-gray-50 transition-colors text-left">
+        <button
+          onClick={() => router.push('/profile/export')}
+          className="flex items-center justify-between w-full p-4 hover:bg-gray-50 transition-colors text-left"
+        >
           <div className="flex items-center">
             <div className="rounded-full p-2 mr-3 bg-green-100 text-green-600">
               <Download className="w-5 h-5" />
@@ -113,7 +125,10 @@ export default function ProfilePage() {
           </div>
           <ChevronRight className="w-5 h-5 text-gray-400 shrink-0" />
         </button>
-        <button className="flex items-center justify-between w-full p-4 hover:bg-gray-50 transition-colors text-left">
+        <button
+          onClick={() => router.push('/profile/help')}
+          className="flex items-center justify-between w-full p-4 hover:bg-gray-50 transition-colors text-left"
+        >
           <div className="flex items-center">
             <div className="rounded-full p-2 mr-3 bg-gray-100 text-gray-600">
               <HelpCircle className="w-5 h-5" />
