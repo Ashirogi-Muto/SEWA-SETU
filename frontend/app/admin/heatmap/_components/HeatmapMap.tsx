@@ -28,16 +28,27 @@ export default function HeatmapMap({ reports }: HeatmapMapProps) {
     useEffect(() => {
         if (!containerRef.current || mapRef.current) return
 
+        const darkLayer = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+            maxZoom: 19,
+        })
+
+        const satelliteLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+            maxZoom: 19,
+            attribution: 'Tiles &copy; Esri &mdash; Source: Esri'
+        })
+
         const map = L.map(containerRef.current, {
             center: [28.4744, 77.5040],
             zoom: 12,
             zoomControl: false,
             attributionControl: false,
+            layers: [darkLayer]
         })
 
-        L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-            maxZoom: 19,
-        }).addTo(map)
+        L.control.layers({
+            "Dark": darkLayer,
+            "Satellite": satelliteLayer
+        }, undefined, { position: 'topright' }).addTo(map)
 
         mapRef.current = map
 
