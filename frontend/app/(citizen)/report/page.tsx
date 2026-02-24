@@ -2,7 +2,8 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
-import { MapPin, Camera, UserCircle2, Loader2, CheckCircle, Trophy, Mic, WifiOff, CloudUpload } from 'lucide-react'
+import { MapPin, Camera, Loader2, CheckCircle, Trophy, Mic, WifiOff, CloudUpload } from 'lucide-react'
+import ProfileAvatar from '@/components/ProfileAvatar'
 import VoiceRecorder from '@/components/VoiceRecorder'
 import { apiFetch } from '@/lib/api'
 import { enqueueAction, countPending } from '@/lib/offlineQueue'
@@ -95,23 +96,32 @@ export default function ReportPage() {
         issue: { id: `GN-${data.id}` },
         karmaEarned: 10
       })
-    } catch (error) {
-      console.error('Submit error (attempting offline save):', error)
-      // Save to offline queue
-      try {
-        await enqueueAction({
-          type: 'report',
-          payload: { description, latitude: lat, longitude: lng },
-          imageBlob: imageFile ? imageFile : undefined,
-          audioBlob: audioBlob || undefined,
-        })
-        setResult({
-          success: true,
-          offline: true,
-          hasAudio: !!audioBlob,
-        })
-      } catch (queueErr) {
-        console.error('Failed to save offline:', queueErr)
+    } catch (error: any) {
+      // Only save to offline queue if it's a genuine network failure
+      const isNetworkError = !navigator.onLine ||
+        (error instanceof TypeError && error.message?.includes('fetch')) ||
+        error?.message === 'Device is offline'
+
+      if (isNetworkError) {
+        console.log('Network unavailable — saving report offline')
+        try {
+          await enqueueAction({
+            type: 'report',
+            payload: { description, latitude: lat, longitude: lng },
+            imageBlob: imageFile ? imageFile : undefined,
+            audioBlob: audioBlob || undefined,
+          })
+          setResult({
+            success: true,
+            offline: true,
+            hasAudio: !!audioBlob,
+          })
+        } catch (queueErr) {
+          console.error('Failed to save offline:', queueErr)
+        }
+      } else {
+        // Online API error (auth, server, validation) — don't queue offline
+        console.error('Submit error:', error)
       }
     } finally {
       setLoading(false)
@@ -127,7 +137,7 @@ export default function ReportPage() {
             <img src="/logo.png" alt="SewaSetu" className="h-10 w-auto object-contain" />
             <span className="text-xl font-bold text-[#173F70]">SewaSetu</span>
           </div>
-          <UserCircle2 className="w-10 h-10 text-[#173F70]" strokeWidth={2} />
+          <ProfileAvatar />
         </header>
         <div className="flex flex-col px-4 pt-6 gap-4 max-w-md mx-auto w-full">
           <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 text-center">
@@ -159,7 +169,7 @@ export default function ReportPage() {
             <img src="/logo.png" alt="SewaSetu" className="h-10 w-auto object-contain" />
             <span className="text-xl font-bold text-[#173F70]">SewaSetu</span>
           </div>
-          <UserCircle2 className="w-10 h-10 text-[#173F70]" strokeWidth={2} />
+          <ProfileAvatar />
         </header>
         <div className="flex flex-col px-4 pt-6 gap-4 max-w-md mx-auto w-full">
           <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 text-center">
@@ -194,7 +204,7 @@ export default function ReportPage() {
           <img src="/logo.png" alt="SewaSetu" className="h-10 w-auto object-contain" />
           <span className="text-xl font-bold text-[#173F70]">SewaSetu</span>
         </div>
-        <UserCircle2 className="w-10 h-10 text-[#173F70]" strokeWidth={2} />
+        <ProfileAvatar />
       </header>
 
       <h1 className="text-xl font-bold text-gray-900 text-center mt-5 mb-2 shrink-0">New Report</h1>
@@ -210,7 +220,7 @@ export default function ReportPage() {
             <textarea
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              className="w-full border border-gray-200 rounded-lg p-3 pr-12 text-sm text-gray-700 min-h-[100px] resize-none focus:outline-none focus:ring-2 focus:ring-[#173F70]/20"
+              className="w-full border-2 border-[#173F70]/30 rounded-xl p-3 pr-12 text-sm text-gray-700 min-h-[100px] resize-none focus:outline-none focus:ring-2 focus:ring-[#173F70]/40 focus:border-[#173F70] bg-[#173F70]/[0.03] transition-colors"
               placeholder="Describe the issue here... or use the mic below to speak"
             />
             {/* Functional Voice Recording Button (Inline Style) */}

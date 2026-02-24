@@ -132,7 +132,7 @@ export default function LoginPage() {
                     onClick={handleGuestLogin}
                     disabled={loading}
                     variant="outline"
-                    className="w-full h-14 border-2 border-slate-300 text-slate-700 hover:bg-slate-50 rounded-2xl font-semibold transition-all flex items-center justify-center"
+                    className="w-full h-14 border-2 border-white bg-white text-slate-700 hover:bg-gray-50 rounded-2xl font-semibold transition-all flex items-center justify-center shadow-md"
                   >
                     {loading ? <Loader2 className="w-5 h-5 animate-spin mr-2" /> : null}
                     Continue as Guest

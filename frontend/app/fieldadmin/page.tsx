@@ -49,42 +49,48 @@ export default function FieldAdminPage() {
 
   const handleStartWork = async (id: number) => {
     try {
-      if (!navigator.onLine) throw new Error('Offline');
+      if (!navigator.onLine) throw new TypeError('Network unavailable');
       await updateReportStatus(id, "in_progress");
       await loadTasks();
-    } catch (err) {
-      console.error("Failed to start work (saving offline):", err);
-      try {
-        await enqueueAction({
-          type: 'resolution',
-          payload: { reportId: id, status: 'in_progress' },
-        });
-        // Optimistic update
-        setTasks(prev => prev.map(t => t.id === id ? { ...t, status: 'in_progress' } : t));
-        showOfflineToast('Saved offline — will sync automatically');
-      } catch (queueErr) {
-        console.error('Failed to queue offline:', queueErr);
+    } catch (err: any) {
+      const isNetworkError = !navigator.onLine || (err instanceof TypeError);
+      if (isNetworkError) {
+        try {
+          await enqueueAction({
+            type: 'resolution',
+            payload: { reportId: id, status: 'in_progress' },
+          });
+          setTasks(prev => prev.map(t => t.id === id ? { ...t, status: 'in_progress' } : t));
+          showOfflineToast('Saved offline — will sync automatically');
+        } catch (queueErr) {
+          console.error('Failed to queue offline:', queueErr);
+        }
+      } else {
+        console.error("Failed to start work:", err);
       }
     }
   };
 
   const handleResolve = async (id: number) => {
     try {
-      if (!navigator.onLine) throw new Error('Offline');
+      if (!navigator.onLine) throw new TypeError('Network unavailable');
       await updateReportStatus(id, "resolved");
       await loadTasks();
-    } catch (err) {
-      console.error("Failed to resolve (saving offline):", err);
-      try {
-        await enqueueAction({
-          type: 'resolution',
-          payload: { reportId: id, status: 'resolved' },
-        });
-        // Optimistic update: remove from task list
-        setTasks(prev => prev.filter(t => t.id !== id));
-        showOfflineToast('Saved offline — will sync automatically');
-      } catch (queueErr) {
-        console.error('Failed to queue offline:', queueErr);
+    } catch (err: any) {
+      const isNetworkError = !navigator.onLine || (err instanceof TypeError);
+      if (isNetworkError) {
+        try {
+          await enqueueAction({
+            type: 'resolution',
+            payload: { reportId: id, status: 'resolved' },
+          });
+          setTasks(prev => prev.filter(t => t.id !== id));
+          showOfflineToast('Saved offline — will sync automatically');
+        } catch (queueErr) {
+          console.error('Failed to queue offline:', queueErr);
+        }
+      } else {
+        console.error("Failed to resolve:", err);
       }
     }
   };

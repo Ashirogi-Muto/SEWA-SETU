@@ -36,6 +36,9 @@ class User(Base):
     password_hash = Column(String, nullable=True) # Optional for "Instant Auth"
     role = Column(Enum(UserRole), default=UserRole.CITIZEN)
     karma = Column(Integer, default=0)
+    phone = Column(String, nullable=True)
+    location = Column(String, nullable=True)
+    language = Column(String, default="en")
     department_id = Column(Integer, ForeignKey("departments.id"), nullable=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     

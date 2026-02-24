@@ -2,7 +2,8 @@
 
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { MapPin, Search, ShieldCheck, UserCircle2, MessageSquare, CheckCircle2 } from 'lucide-react'
+import { MapPin, Search, ShieldCheck, MessageSquare, CheckCircle2 } from 'lucide-react'
+import ProfileAvatar from '@/components/ProfileAvatar'
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import { fetchMyReports, BackendReport } from '@/lib/api'
@@ -65,7 +66,7 @@ export default function HomePage() {
           <img src="/logo.png" alt="SewaSetu" className="w-14 h-14 object-contain shrink-0" />
           <span className="text-xl font-bold text-[#173F70]">SewaSetu</span>
         </div>
-        <UserCircle2 className="w-10 h-10 text-[#173F70]" strokeWidth={2} />
+        <ProfileAvatar />
       </header>
 
       {/* CONTENT - side padding restored */}

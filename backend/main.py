@@ -32,7 +32,7 @@ from backend.auth_service import verify_password, get_password_hash, create_acce
 
 # --- Pydantic Models ---
 from backend.schemas import (
-    LoginRequest, RegisterRequest, Token,
+    LoginRequest, RegisterRequest, Token, UserUpdate,
     AnalyticsResponse, DepartmentCreate, DepartmentResponse
 )
 
@@ -184,7 +184,9 @@ async def get_user_profile(db: AsyncSession = Depends(get_db), current_user: Use
         "name": current_user.name or "Citizen",
         "email": current_user.email,
         "role": current_user.role,
-        "location": "Dadri, Greater Noida", # Can be made dynamic later
+        "location": current_user.location or "Dadri, Greater Noida",
+        "phone": current_user.phone or "",
+        "language": current_user.language or "en",
         "karma": current_user.karma,
         "rank": rank,
         "stats": {
@@ -193,6 +195,51 @@ async def get_user_profile(db: AsyncSession = Depends(get_db), current_user: Use
             "pending_reports": pending_reports
         }
     }
+
+@router.put("/users/me")
+async def update_user_profile(user_update: UserUpdate, db: AsyncSession = Depends(get_db), current_user: User = Depends(get_current_user)):
+    if user_update.name is not None:
+        current_user.name = user_update.name
+    if user_update.email is not None:
+        current_user.email = user_update.email
+    if user_update.phone is not None:
+        current_user.phone = user_update.phone
+    if user_update.location is not None:
+        current_user.location = user_update.location
+    if user_update.language is not None:
+        current_user.language = user_update.language
+
+    db.add(current_user)
+    await db.commit()
+    await db.refresh(current_user)
+    return {"message": "Profile updated successfully"}
+
+@router.get("/users/me/export")
+async def export_user_data(db: AsyncSession = Depends(get_db), current_user: User = Depends(get_current_user)):
+    from fastapi.responses import PlainTextResponse
+    import csv
+    import io
+
+    # User details
+    output = io.StringIO()
+    writer = csv.writer(output)
+    writer.writerow(["Data Type", "User Data"])
+    writer.writerow(["Name", current_user.name])
+    writer.writerow(["Email", current_user.email])
+    writer.writerow(["Phone", current_user.phone])
+    writer.writerow(["Location", current_user.location])
+    writer.writerow(["Karma", current_user.karma])
+    writer.writerow([])
+
+    # User Reports
+    writer.writerow(["Report ID", "Category", "Status", "Date", "Description"])
+    stmt = select(Report).where(Report.user_id == current_user.id).order_by(desc(Report.created_at))
+    result = await db.execute(stmt)
+    reports = result.scalars().all()
+    for r in reports:
+        writer.writerow([r.id, r.category, r.status.value, r.created_at.strftime("%Y-%m-%d %H:%M:%S"), r.description[:100]])
+    
+    return PlainTextResponse(output.getvalue(), media_type="text/csv", headers={"Content-Disposition": "attachment; filename=user_export.csv"})
 
 @router.get("/health")
 async def health_check(db: AsyncSession = Depends(get_db)):
@@ -466,10 +513,37 @@ async def get_alerts(db: AsyncSession = Depends(get_db), current_user: User = De
             "title": a.title,
             "message": a.message,
             "time": time_str,
-            "icon": a.icon
+            "icon": a.icon,
+            "is_read": a.is_read
         })
         
     return frontend_alerts
+
+@router.put("/alerts/{alert_id}/read")
+async def mark_alert_read(alert_id: int, db: AsyncSession = Depends(get_db), current_user: User = Depends(get_current_user)):
+    stmt = select(Alert).where(Alert.id == alert_id, Alert.user_id == current_user.id)
+    result = await db.execute(stmt)
+    alert = result.scalars().first()
+    if not alert:
+        raise HTTPException(status_code=404, detail="Alert not found")
+    
+    alert.is_read = True
+    db.add(alert)
+    await db.commit()
+    return {"status": "success"}
+
+@router.put("/alerts/read/all")
+async def mark_all_alerts_read(db: AsyncSession = Depends(get_db), current_user: User = Depends(get_current_user)):
+    stmt = select(Alert).where(Alert.user_id == current_user.id, Alert.is_read == False)
+    result = await db.execute(stmt)
+    alerts = result.scalars().all()
+    
+    for alert in alerts:
+        alert.is_read = True
+        db.add(alert)
+        
+    await db.commit()
+    return {"status": "success"}
 
 @router.get("/reports/assigned")
 async def get_assigned_reports(

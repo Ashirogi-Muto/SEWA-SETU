@@ -26,12 +26,12 @@ interface DashboardMapProps {
 const DEFAULT_CENTER: [number, number] = [28.4744, 77.5040]
 
 const HEAT_GRADIENT = {
-    0.1: '#2563eb',
-    0.3: '#7c3aed',
-    0.5: '#f59e0b',
-    0.7: '#f97316',
-    0.9: '#ef4444',
-    1.0: '#dc2626',
+    0.0: '#ffffb2',
+    0.2: '#fed976',
+    0.4: '#feb24c',
+    0.6: '#fd8d3c',
+    0.8: '#f03b20',
+    1.0: '#bd0026',
 }
 
 // Heatmap layer component using leaflet.heat with viewport-aware normalization
@@ -65,8 +65,8 @@ const HeatmapLayer = ({ points }: { points: [number, number, number][] }) => {
             }
             const dynamicMax = computeViewportMax(map, points)
             heatLayer = heatLayerConstructor(points, {
-                radius: 30,
-                blur: 20,
+                radius: 35,
+                blur: 25,
                 maxZoom: 17,
                 max: dynamicMax,
                 gradient: HEAT_GRADIENT,

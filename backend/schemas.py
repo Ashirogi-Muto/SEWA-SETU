@@ -20,6 +20,13 @@ class Token(BaseModel):
     role: str
     name: str
 
+class UserUpdate(BaseModel):
+    name: Optional[str] = None
+    email: Optional[str] = None
+    phone: Optional[str] = None
+    location: Optional[str] = None
+    language: Optional[str] = None
+
 
 class AnalyticsResponse(BaseModel):
     total_reports: int

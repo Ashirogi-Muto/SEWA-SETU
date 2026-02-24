@@ -66,6 +66,11 @@ export async function apiFetch<T = any>(
         return null as T
     }
 
+    const contentType = response.headers.get('content-type')
+    if (contentType && contentType.includes('text/csv')) {
+        return response.text() as unknown as T
+    }
+
     return response.json()
 }
 
@@ -108,7 +113,9 @@ export interface UserProfile {
     name: string
     email: string
     role: string
+    phone?: string
     location: string
+    language?: string
     karma: number
     rank: string
     stats: {
@@ -120,6 +127,19 @@ export interface UserProfile {
 
 export async function fetchUserProfile(): Promise<UserProfile> {
     return apiFetch<UserProfile>('/api/users/me')
+}
+
+export async function updateUserProfile(data: Partial<UserProfile>): Promise<any> {
+    return apiFetch('/api/users/me', {
+        method: 'PUT',
+        body: JSON.stringify(data)
+    })
+}
+
+export async function exportUserData(): Promise<string> {
+    return apiFetch('/api/users/me/export', {
+        headers: { 'Accept': 'text/csv' }
+    })
 }
 
 // --- Reports ---
@@ -254,8 +274,21 @@ export interface AppAlert {
     message: string
     time: string
     icon: string
+    is_read: boolean
 }
 
 export async function fetchAlerts(): Promise<AppAlert[]> {
     return apiFetch<AppAlert[]>('/api/alerts')
+}
+
+export async function markAlertRead(alertId: string | number): Promise<any> {
+    return apiFetch(`/api/alerts/${alertId.toString().replace('alert-', '')}/read`, {
+        method: 'PUT'
+    })
+}
+
+export async function markAllAlertsRead(): Promise<any> {
+    return apiFetch('/api/alerts/read/all', {
+        method: 'PUT'
+    })
 }

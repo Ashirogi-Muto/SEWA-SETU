@@ -51,10 +51,14 @@ export default function ProfilePage() {
               <MapPin className="w-4 h-4 shrink-0" />
               {profile?.location || '...'}
             </p>
-            <div className="bg-[#F59E0B]/10 text-[#F59E0B] border border-[#F59E0B]/30 px-3 py-1.5 rounded-full text-xs font-bold flex items-center gap-1.5 mt-3 w-fit">
+            <button
+              onClick={() => router.push('/profile/shop')}
+              className="bg-[#F59E0B]/10 text-[#F59E0B] border border-[#F59E0B]/30 px-3 py-1.5 rounded-full text-xs font-bold flex items-center gap-1.5 mt-3 w-fit hover:bg-[#F59E0B]/20 hover:scale-105 transition-all cursor-pointer"
+            >
               <Trophy className="w-3.5 h-3.5" />
               Citizen Rank: {profile?.rank || 'Bronze'} ({profile?.karma || 0} Karma)
-            </div>
+              <ChevronRight className="w-3.5 h-3.5" />
+            </button>
           </div>
         </div>
       </div>

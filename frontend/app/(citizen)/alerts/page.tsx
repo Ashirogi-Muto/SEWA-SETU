@@ -2,13 +2,13 @@
 
 import { useState, useEffect } from 'react'
 import {
-  UserCircle2,
   TriangleAlert,
   RefreshCw,
   Bell,
   Info,
   Loader2
 } from 'lucide-react'
+import ProfileAvatar from '@/components/ProfileAvatar'
 import { fetchAlerts, AppAlert } from '@/lib/api'
 
 export default function AlertsPage() {
@@ -68,7 +68,7 @@ export default function AlertsPage() {
       {/* Header */}
       <header className="w-full px-5 pt-6 pb-3 flex justify-between items-center shrink-0 z-10">
         <h1 className="text-2xl font-black text-[#173F70]">Alerts</h1>
-        <UserCircle2 className="w-8 h-8 text-[#173F70]" />
+        <ProfileAvatar />
       </header>
 
       {/* Filter Chips */}
@@ -112,12 +112,8 @@ export default function AlertsPage() {
               <p className="text-xs text-gray-600 mt-1 leading-relaxed">
                 {alert.message}
               </p>
-              <div className="flex items-center gap-2 mt-2">
-                <span className="text-xs font-black text-gray-900">{alert.type}</span>
-                {alert.type === 'Urgent' && (
-                  <span className="text-[10px] text-gray-400 font-medium">{alert.time}</span>
-                )}
-              </div>
+
+
             </div>
           </div>
         ))}

@@ -260,13 +260,7 @@ export default function VoiceRecorder({ onTranscription, disabled, inline }: Voi
             <p className="text-sm text-center text-muted-foreground">
               🔴 Recording... Speak clearly
             </p>
-            <div className="flex flex-wrap justify-center gap-2 text-xs">
-              <span className="bg-muted px-2 py-1 rounded">पॉटहोल</span>
-              <span className="bg-muted px-2 py-1 rounded">गड्ढा</span>
-              <span className="bg-muted px-2 py-1 rounded">सड़क</span>
-              <span className="bg-muted px-2 py-1 rounded">बिजली</span>
-              <span className="bg-muted px-2 py-1 rounded">पानी</span>
-            </div>
+
           </motion.div>
         )
       }

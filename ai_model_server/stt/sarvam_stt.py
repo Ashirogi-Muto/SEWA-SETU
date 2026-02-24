@@ -33,7 +33,7 @@ async def transcribe_sarvam(audio_bytes: bytes, filename: str = "audio.webm") ->
     data = {
         "model": "saaras:v3",
         "language_code": "unknown",   # auto-detect
-        "mode": "transcribe",         # standard transcription
+        "mode": "codemix",          # English in English, Hindi in Devanagari
     }
 
     try:

@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
-import { fetchUserProfile } from '@/lib/api'
+import { fetchUserProfile, updateUserProfile } from '@/lib/api'
 import { ArrowLeft, Camera, User, Mail, Phone, MapPin, Save, Loader2 } from 'lucide-react'
 
 export default function EditProfilePage() {
@@ -25,7 +25,7 @@ export default function EditProfilePage() {
                 setFormData({
                     name: data?.name || '',
                     email: data?.email || '',
-                    phone: '', // Placeholder since phone isn't in default API schema
+                    phone: data?.phone || '',
                     location: data?.location || ''
                 })
             })
@@ -48,11 +48,15 @@ export default function EditProfilePage() {
     const handleSave = async (e: React.FormEvent) => {
         e.preventDefault()
         setSaving(true)
-        // Simulate API call for saving profile
-        setTimeout(() => {
-            setSaving(false)
+        try {
+            await updateUserProfile(formData)
             router.push('/profile')
-        }, 800)
+        } catch (error) {
+            console.error('Failed to save profile', error)
+            alert('Failed to save profile changes. Please try again.')
+        } finally {
+            setSaving(false)
+        }
     }
 
     return (

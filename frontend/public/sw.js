@@ -1,5 +1,5 @@
 // SewaSetu Service Worker - Offline Keyword Matching
-const CACHE_NAME = 'sewasetu-v1'
+const CACHE_NAME = 'sewasetu-v2'
 const OFFLINE_URL = '/citizen'
 
 // Offline keyword mappings (Hindi + English)
@@ -48,35 +48,50 @@ self.addEventListener('activate', (event) => {
   self.clients.claim()
 })
 
-// Fetch event - offline-first strategy
+// Fetch event - network-first for navigation, cache-first for assets
 self.addEventListener('fetch', (event) => {
-  // Skip non-GET requests
+  // Skip non-GET requests (POST/PATCH handled by app-level offline queue)
   if (event.request.method !== 'GET') return
 
-  event.respondWith(
-    caches.match(event.request).then((cachedResponse) => {
-      // Return cached response if available
-      if (cachedResponse) {
-        return cachedResponse
-      }
-
-      // Try network
-      return fetch(event.request)
+  // Navigation requests (page loads / refreshes): NETWORK-FIRST
+  // This ensures refreshing any portal stays on that portal's page
+  if (event.request.mode === 'navigate') {
+    event.respondWith(
+      fetch(event.request)
         .then((response) => {
-          // Cache successful responses
+          // Cache the successful page for future offline use
           if (response.status === 200) {
-            const responseClone = response.clone()
-            caches.open(CACHE_NAME).then((cache) => {
-              cache.put(event.request, responseClone)
-            })
+            const clone = response.clone()
+            caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone))
           }
           return response
         })
         .catch(() => {
-          // Return offline page for navigation requests
-          if (event.request.mode === 'navigate') {
-            return caches.match(OFFLINE_URL)
+          // Offline: serve the cached version of THIS SAME URL
+          return caches.match(event.request).then((cached) => {
+            return cached || caches.match(OFFLINE_URL) || new Response('Offline', { status: 503, headers: { 'Content-Type': 'text/plain' } })
+          })
+        })
+    )
+    return
+  }
+
+  // Static assets (JS, CSS, images): CACHE-FIRST
+  event.respondWith(
+    caches.match(event.request).then((cachedResponse) => {
+      if (cachedResponse) return cachedResponse
+
+      return fetch(event.request)
+        .then((response) => {
+          if (response.status === 200) {
+            const clone = response.clone()
+            caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone))
           }
+          return response
+        })
+        .catch(() => {
+          // Return an empty response instead of undefined to avoid TypeError
+          return new Response('', { status: 503, statusText: 'Offline' })
         })
     })
   )

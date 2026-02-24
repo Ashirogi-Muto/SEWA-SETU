@@ -3,24 +3,36 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { ArrowLeft, Download, FileText, CheckCircle2, Loader2, Calendar } from 'lucide-react'
+import { exportUserData } from '@/lib/api'
 
 export default function ExportDataPage() {
     const router = useRouter()
     const [downloading, setDownloading] = useState(false)
     const [downloaded, setDownloaded] = useState(false)
 
-    const handleDownload = () => {
+    const handleDownload = async () => {
         setDownloading(true)
-        // Simulate data compilation and download
-        setTimeout(() => {
-            setDownloading(false)
-            setDownloaded(true)
+        try {
+            const csvData = await exportUserData()
 
-            // Reset state after a few seconds
-            setTimeout(() => {
-                setDownloaded(false)
-            }, 3000)
-        }, 2000)
+            // Trigger blob download
+            const blob = new Blob([csvData], { type: 'text/csv' })
+            const url = window.URL.createObjectURL(blob)
+            const a = document.createElement('a')
+            a.href = url
+            a.download = `SewaSetu_Export_${new Date().toISOString().split('T')[0]}.csv`
+            document.body.appendChild(a)
+            a.click()
+            window.URL.revokeObjectURL(url)
+
+            setDownloaded(true)
+            setTimeout(() => setDownloaded(false), 3000)
+        } catch (error) {
+            console.error('Export failed:', error)
+            alert('Failed to export data. Please try again.')
+        } finally {
+            setDownloading(false)
+        }
     }
 
     return (
