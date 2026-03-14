@@ -26,11 +26,11 @@ function getCategoryInfo(category: string, status: string) {
   const isResolved = status === 'RESOLVED' || status === 'resolved'
   const isProgress = status === 'IN_PROGRESS' || status === 'in_progress'
 
-  let emoji = '📝'
-  if (catLower.includes('road') || catLower.includes('pothole')) emoji = '🛣️'
-  else if (catLower.includes('water') || catLower.includes('drain') || catLower.includes('sewage')) emoji = '💧'
-  else if (catLower.includes('light') || catLower.includes('electric')) emoji = '💡'
-  else if (catLower.includes('garbage')) emoji = '🗑️'
+  let emoji = ''
+  if (catLower.includes('road') || catLower.includes('pothole')) emoji = ''
+  else if (catLower.includes('water') || catLower.includes('drain') || catLower.includes('sewage')) emoji = ''
+  else if (catLower.includes('light') || catLower.includes('electric')) emoji = ''
+  else if (catLower.includes('garbage')) emoji = ''
 
   let bg = 'bg-[#F59E0B]/20 text-[#F59E0B]'
   if (isResolved) bg = 'bg-[#10B981]/20 text-[#10B981]'
@@ -211,7 +211,7 @@ function ReportDetailModal({ report, onClose }: { report: BackendReport; onClose
           {report.duplicate_of && (
             <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-3">
               <p className="text-xs font-bold text-yellow-700">
-                ⚠️ This report was flagged as a duplicate of Report R-{report.duplicate_of}
+                 This report was flagged as a duplicate of Report R-{report.duplicate_of}
               </p>
             </div>
           )}

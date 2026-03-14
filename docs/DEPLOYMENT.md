@@ -4,12 +4,11 @@ This guide walks you through deploying SewaSetu to Render (backend) and Vercel (
 
 ---
 
-## 🚀 Backend Deployment (Render)
+##  Backend Deployment (Render)
 
 ### Prerequisites
 - Render account (free tier works)
 - GitHub repository pushed with your code
-- AWS account with Bedrock access enabled
 - Supabase project created
 
 ---
@@ -22,7 +21,7 @@ The backend is already configured to allow all origins:
 # backend/main.py (line 547-553)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # ✅ Allows all origins
+    allow_origins=["*"],  #  Allows all origins
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -30,7 +29,7 @@ app.add_middleware(
 ```
 
 #### 1.2 Check for Hardcoded URLs
-✅ **All hardcoded localhost URLs have been removed:**
+ **All hardcoded localhost URLs have been removed:**
 - `backend/ai_service.py`: Now uses environment variable only
 - `backend/admin_map.html`: Uses `window.location.origin` (dynamic)
 
@@ -83,7 +82,7 @@ AI_API_URL=
 - **Supabase:** Supabase Dashboard → Project Settings → API
 - **API_SECRET_KEY:** Generate using: `openssl rand -hex 32`
 
-💡 **Tip:** See `backend/.env.render.example` for a complete template.
+ **Tip:** See `backend/.env.render.example` for a complete template.
 
 ---
 
@@ -97,20 +96,20 @@ AI_API_URL=
 
 3. **Check Logs:**
    - Go to "Logs" tab to verify startup
-   - Look for: `✅ All required environment variables loaded successfully!`
+   - Look for: ` All required environment variables loaded successfully!`
 
 4. **Test API:**
    - Visit: `https://your-service.onrender.com/`
-   - Expected response: `{"status": "active", "service": "SewaSetu Backend", "ai_mode": "Amazon Bedrock"}`
+   - Expected response: `{"status": "active", ...}`
 
 ---
 
-## 🌐 Frontend Deployment (Vercel)
+##  Frontend Deployment (Vercel)
 
 ### Step 1: Prepare Frontend
 
 #### 1.1 Update Environment Variables
-Edit `citizen-portal/.env`:
+Edit `frontend/.env`:
 ```env
 VITE_API_URL=https://sewasetu-backend.onrender.com
 VITE_SUPABASE_URL=<your_supabase_project_url>
@@ -125,14 +124,15 @@ VITE_SUPABASE_KEY=<your_supabase_anon_key>
 
 #### Option A: Using Vercel CLI (Recommended)
 ```bash
-cd citizen-portal
+cd frontend
 npm install -g vercel
 vercel login
 vercel
 ```
 
 Follow the prompts:
-- Project name: `sewasetu-citizen-portal`
+- Project name: `sewasetu-frontend`
+- Framework Preset: `Next.js`
 - Build command: `npm run build`
 - Output directory: `dist`
 
@@ -141,10 +141,8 @@ Follow the prompts:
 2. Import your GitHub repository
 3. Configure:
    ```
-   Framework Preset: Vite
-   Root Directory: citizen-portal
-   Build Command: npm run build
-   Output Directory: dist
+   Framework Preset: Next.js
+   Root Directory: frontend
    ```
 4. Add Environment Variables (same as Step 1.1)
 5. Click "Deploy"
@@ -160,7 +158,7 @@ If your frontend domain is different from `*`, update backend CORS:
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
-        "https://sewasetu-citizen-portal.vercel.app",
+        "https://sewasetu-frontend.vercel.app",
         "https://your-custom-domain.com"
     ],
     allow_credentials=True,
@@ -173,7 +171,7 @@ Then redeploy the backend on Render.
 
 ---
 
-## 🔧 Troubleshooting
+##  Troubleshooting
 
 ### Issue 1: "CORS Error" in Frontend
 **Solution:**
@@ -201,7 +199,7 @@ Then redeploy the backend on Render.
 
 ---
 
-## 🎯 Post-Deployment Checklist
+##  Post-Deployment Checklist
 
 - [ ] Backend health check returns `{"status": "active"}`
 - [ ] Frontend loads without CORS errors
@@ -214,7 +212,7 @@ Then redeploy the backend on Render.
 
 ---
 
-## 📊 Performance Optimization (Optional)
+##  Performance Optimization (Optional)
 
 ### Enable Caching
 Add to `backend/main.py`:
@@ -236,7 +234,7 @@ public_url = supabase.storage.from_(bucket_name).get_public_url(
 
 ---
 
-## 🌍 Custom Domain (Optional)
+##  Custom Domain (Optional)
 
 ### For Backend (Render)
 1. Go to Render Dashboard → Settings → Custom Domains
@@ -250,7 +248,7 @@ public_url = supabase.storage.from_(bucket_name).get_public_url(
 
 ---
 
-## 🔒 Security Recommendations
+##  Security Recommendations
 
 ### Production Checklist
 - [ ] Use strong `API_SECRET_KEY` (32+ characters random string)
@@ -263,7 +261,7 @@ public_url = supabase.storage.from_(bucket_name).get_public_url(
 
 ---
 
-## 📞 Support
+##  Support
 
 If you encounter issues:
 1. Check Render Logs: `Dashboard → Logs`
@@ -273,7 +271,7 @@ If you encounter issues:
 ---
 
 <div align="center">
-  <strong>🎉 Your SewaSetu is now live!</strong>
+  <strong> Your SewaSetu is now live!</strong>
   <br>
   <sub>Share the URL with citizens and government officials to start making an impact.</sub>
 </div>

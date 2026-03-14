@@ -5,6 +5,8 @@ Auto-detects language from 23 Indian languages + English.
 """
 import os
 import httpx
+from ai_model_server.logging_config import get_logger
+logger = get_logger("stt_sarvam", "stt")
 
 SARVAM_API_URL = "https://api.sarvam.ai/speech-to-text"
 SARVAM_API_KEY = os.getenv("SARVAM_API_KEY")
@@ -19,7 +21,7 @@ async def transcribe_sarvam(audio_bytes: bytes, filename: str = "audio.webm") ->
         None on failure.
     """
     if not SARVAM_API_KEY:
-        print("⚠️ Sarvam STT: No API key configured (SARVAM_API_KEY)")
+        logger.warning("Sarvam STT: No API key configured (SARVAM_API_KEY)")
         return None
 
     headers = {
@@ -37,7 +39,7 @@ async def transcribe_sarvam(audio_bytes: bytes, filename: str = "audio.webm") ->
     }
 
     try:
-        print(f"🎤 Sarvam STT: Sending {len(audio_bytes)} bytes to API...")
+        logger.info(f"Sarvam STT: Sending {len(audio_bytes)} bytes to API...")
 
         async with httpx.AsyncClient(timeout=30.0) as client:
             response = await client.post(
@@ -53,7 +55,7 @@ async def transcribe_sarvam(audio_bytes: bytes, filename: str = "audio.webm") ->
         language_code = result.get("language_code", "unknown")
         language_prob = result.get("language_probability")
 
-        print(f"✅ Sarvam STT: '{transcript[:60]}...' "
+        logger.info(f"Sarvam STT: '{transcript[:60]}...' "
               f"(lang={language_code}, confidence={language_prob})")
 
         return {
@@ -64,11 +66,11 @@ async def transcribe_sarvam(audio_bytes: bytes, filename: str = "audio.webm") ->
         }
 
     except httpx.HTTPStatusError as e:
-        print(f"❌ Sarvam STT HTTP error: {e.response.status_code} - {e.response.text[:200]}")
+        logger.error(f"Sarvam STT HTTP error: {e.response.status_code} - {e.response.text[:200]}")
         return None
     except httpx.TimeoutException:
-        print("❌ Sarvam STT: Request timed out (30s)")
+        logger.error("Sarvam STT: Request timed out (30s)")
         return None
     except Exception as e:
-        print(f"❌ Sarvam STT error: {e}")
+        logger.error(f"Sarvam STT error: {e}")
         return None

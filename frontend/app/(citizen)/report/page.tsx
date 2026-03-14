@@ -147,7 +147,7 @@ export default function ReportPage() {
             <h2 className="text-xl font-bold text-gray-900 mb-2">Saved Offline</h2>
             <p className="text-sm text-gray-600 mb-2">Your report will be submitted automatically when you&apos;re back online.</p>
             {result.hasAudio && (
-              <p className="text-xs text-amber-700 mb-4">🎤 Voice recording will be transcribed on sync.</p>
+              <p className="text-xs text-amber-700 mb-4"> Voice recording will be transcribed on sync.</p>
             )}
             <button
               onClick={() => router.push('/home')}

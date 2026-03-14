@@ -46,9 +46,9 @@ export async function syncAllPending(): Promise<void> {
 
                 // Success — remove from queue
                 await dequeueAction(action.id)
-                console.log(`[OfflineSync] ✅ Synced action ${action.id} (${action.type})`)
+                console.log(`[OfflineSync]  Synced action ${action.id} (${action.type})`)
             } catch (err) {
-                console.error(`[OfflineSync] ❌ Failed to sync ${action.id}:`, err)
+                console.error(`[OfflineSync]  Failed to sync ${action.id}:`, err)
                 await updateActionStatus(action.id, 'failed', true)
             }
         }
@@ -71,7 +71,7 @@ async function syncReport(action: OfflineAction): Promise<void> {
             if (sttResult.text) {
                 // Remove the placeholder text if present, then append real transcription
                 description = description
-                    .replace('🎤 Voice recorded — will be transcribed when online', '')
+                    .replace(' Voice recorded — will be transcribed when online', '')
                     .trim()
                 description = description
                     ? `${description} ${sttResult.text}`
@@ -117,7 +117,7 @@ async function syncResolution(action: OfflineAction): Promise<void> {
  */
 export function initOfflineSync(): () => void {
     const handleOnline = () => {
-        console.log('[OfflineSync] 🌐 Back online — starting sync...')
+        console.log('[OfflineSync]  Back online — starting sync...')
         syncAllPending()
     }
 

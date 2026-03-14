@@ -74,10 +74,10 @@ export default function VoiceRecorder({ onTranscription, disabled, inline }: Voi
         // Offline: skip STT API, pass raw audio blob with placeholder
         if (typeof navigator !== 'undefined' && !navigator.onLine) {
           setPreview({
-            transcript: '🎤 Voice recorded — will be transcribed when online',
+            transcript: ' Voice recorded — will be transcribed when online',
             confidence: 0,
             source: 'mock',
-            preview: '🎤 Voice recorded — will be transcribed when online'
+            preview: ' Voice recorded — will be transcribed when online'
           })
           setShowPreview(true)
           setIsProcessing(false)
@@ -132,7 +132,7 @@ export default function VoiceRecorder({ onTranscription, disabled, inline }: Voi
       }, 1000)
     } catch (error) {
       console.error('Microphone access denied:', error)
-      alert('🎤 Please allow microphone access to record audio')
+      alert(' Please allow microphone access to record audio')
     }
   }
 
@@ -165,16 +165,16 @@ export default function VoiceRecorder({ onTranscription, disabled, inline }: Voi
   }
 
   const getConfidenceLabel = (confidence: number) => {
-    if (confidence >= 0.8) return '✅ High'
-    if (confidence >= 0.6) return '⚠️ Medium'
-    return '❌ Low'
+    if (confidence >= 0.8) return ' High'
+    if (confidence >= 0.6) return ' Medium'
+    return ' Low'
   }
 
   const getSourceLabel = (source: string) => {
     switch (source) {
-      case 'sarvam': return '🎯 Sarvam AI'
-      case 'whisper': return '🔄 Whisper (fallback)'
-      case 'mock': return '🎭 Mock (demo)'
+      case 'sarvam': return ' Sarvam AI'
+      case 'whisper': return ' Whisper (fallback)'
+      case 'mock': return ' Mock (demo)'
       default: return source
     }
   }
@@ -234,7 +234,7 @@ export default function VoiceRecorder({ onTranscription, disabled, inline }: Voi
             ) : (
               <>
                 <Mic className="w-6 h-6 mr-2" />
-                🎤 Speak Issue (Hindi/English)
+                 Speak Issue (Hindi/English)
               </>
             )}
 
@@ -258,7 +258,7 @@ export default function VoiceRecorder({ onTranscription, disabled, inline }: Voi
             className="space-y-2"
           >
             <p className="text-sm text-center text-muted-foreground">
-              🔴 Recording... Speak clearly
+               Recording... Speak clearly
             </p>
 
           </motion.div>
@@ -322,14 +322,14 @@ export default function VoiceRecorder({ onTranscription, disabled, inline }: Voi
                     variant="outline"
                     className="w-full"
                   >
-                    🔄 Re-record
+                     Re-record
                   </Button>
                   <Button
                     type="button"
                     onClick={acceptTranscription}
                     className="w-full bg-green-600 hover:bg-green-700"
                   >
-                    ✅ Use This
+                     Use This
                   </Button>
                 </div>
               </CardContent>

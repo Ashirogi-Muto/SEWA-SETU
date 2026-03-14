@@ -14,6 +14,8 @@ when only using the Sarvam provider.
 """
 import os
 from enum import Enum
+from ai_model_server.logging_config import get_logger
+logger = get_logger("stt_router", "stt")
 
 # Minimum language_probability from Sarvam to accept without fallback
 CONFIDENCE_THRESHOLD = float(os.getenv("SARVAM_CONFIDENCE_THRESHOLD", "0.7"))
@@ -27,7 +29,6 @@ class STTProvider(str, Enum):
 def get_stt_mode() -> str:
     """
     Service mode detection.
-    Inspired by temp/apps/api/routes/ai.routes.ts getAIServiceMode().
     """
     has_sarvam = bool(os.getenv("SARVAM_API_KEY"))
     has_hf = bool(os.getenv("HUGGING_FACE_HUB_TOKEN"))
@@ -61,7 +62,7 @@ async def transcribe(audio_bytes: bytes, provider: str = None) -> dict:
 
     # ── Force legacy if no Sarvam API key ──
     if provider == STTProvider.SARVAM and not os.getenv("SARVAM_API_KEY"):
-        print("⚠️ STT Router: No SARVAM_API_KEY, falling back to legacy provider")
+        logger.warning("STT Router: No SARVAM_API_KEY, falling back to legacy provider")
         provider = STTProvider.LEGACY
 
     # ── Sarvam path ──
@@ -78,7 +79,7 @@ async def transcribe(audio_bytes: bytes, provider: str = None) -> dict:
                 return result
 
             # Low confidence — try legacy fallback
-            print(f"⚠️ STT Router: Sarvam confidence {confidence:.2f} < {CONFIDENCE_THRESHOLD}, "
+            logger.warning(f"STT Router: Sarvam confidence {confidence:.2f} < {CONFIDENCE_THRESHOLD}, "
                   f"fallback={'enabled' if fallback_enabled else 'disabled'}")
 
             if fallback_enabled:
@@ -91,7 +92,7 @@ async def transcribe(audio_bytes: bytes, provider: str = None) -> dict:
 
         # Sarvam returned None (error)
         if fallback_enabled:
-            print("⚠️ STT Router: Sarvam failed, falling back to legacy")
+            logger.warning("STT Router: Sarvam failed, falling back to legacy")
             legacy_result = _run_legacy(audio_bytes)
             if legacy_result:
                 return legacy_result
@@ -99,7 +100,7 @@ async def transcribe(audio_bytes: bytes, provider: str = None) -> dict:
         return {"text": "", "model": "none", "error": "Sarvam failed, no fallback"}
 
     # ── Legacy path (explicit or forced) ──
-    print("🔧 STT Router: Using legacy provider (Whisper + IndicConformer)")
+    logger.info("STT Router: Using legacy provider (Whisper + IndicConformer)")
     result = _run_legacy(audio_bytes)
     if result:
         return result

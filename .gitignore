@@ -45,18 +45,15 @@ sewasetu.db
 # --- AI Model Server Specific ---
 /ai_model_server/venv/
 /ai_model_server/__pycache__/
-/ai_model_server/models/
+/ai_model_server/models/*
+!/ai_model_server/models/best.pt
 *.h5
 *.hdf5
 *.pkl
 *.joblib
 
-# --- Frontend Specific (Node.js / React) ---
+# --- Frontend Specific (Node.js / Next.js) ---
 node_modules/
-/admin-portal/dist/
-/admin-portal/build/
-/citizen-portal/dist/
-/citizen-portal/build/
 .vite/
 
 # Deployment artifacts
@@ -71,26 +68,14 @@ node_modules/
 *.pfx
 secrets.json
 config.json
-.env
 
-# Temporary files (debugging, testing)
-**/FIX*.md
-**/FIX*.sql
-**/TEST*.md
-**/QUICK*.md
-**/QUICK*.sql
-**/COMPLETE*.md
-**/COMPLETE*.sql
-**/*_SUMMARY.md
-**/test_*.py
-**/test_*.sh
-**/*.bat.env
-.env
+# Temporary files
+*.tmp
+*.temp
 
 # Custom project ignores
 .venv/
 backend/.venv/
-temp/
 token.txt
 backend/uploads/*
 !backend/uploads/.gitkeep

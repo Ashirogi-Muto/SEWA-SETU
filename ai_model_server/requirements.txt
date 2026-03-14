@@ -1,6 +1,6 @@
 fastapi
 uvicorn
-tensorflow
+ultralytics
 Pillow
 requests
 torch

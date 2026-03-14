@@ -42,7 +42,7 @@ export default function HeatmapMap({ reports }: HeatmapMapProps) {
             zoom: 12,
             zoomControl: false,
             attributionControl: false,
-            layers: [darkLayer]
+            layers: [satelliteLayer]
         })
 
         L.control.layers({

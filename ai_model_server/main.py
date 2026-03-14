@@ -12,25 +12,27 @@ from fastapi import FastAPI, HTTPException, UploadFile, File, Query
 from pydantic import BaseModel, Field
 from typing import List, Optional
 from ai_model_server.stt.stt_router import transcribe, get_stt_mode
+from ai_model_server.logging_config import get_logger
+logger = get_logger("ai_main", "main")
 
-# --- TensorFlow and Image Processing Imports ---
-import numpy as np
+# --- YOLO and Image Processing Imports ---
+from ultralytics import YOLO
 from PIL import Image
-from tensorflow.keras.applications.mobilenet_v2 import MobileNetV2, preprocess_input, decode_predictions
 
 # --- 1. Load Model ---
-model = MobileNetV2(weights='imagenet')
+_model_path = Path(__file__).parent / "models" / "best.pt"
+model = YOLO(str(_model_path))
 
 # --- 2. Business Logic ---
 def map_prediction_to_category(raw_prediction_label: str) -> str:
     label = raw_prediction_label.lower()
-    if any(keyword in label for keyword in ['truck', 'car', 'bus', 'ambulance', 'motorcycle', 'convertible', 'wreck']):
+    if any(keyword in label for keyword in ['truck', 'car', 'bus', 'ambulance', 'motorcycle', 'convertible', 'wreck', 'vehicle', 'transport']):
         return "Public Transport"
-    if any(keyword in label for keyword in ['trash_can', 'garbage', 'waste', 'bin', 'dumpster']):
+    if any(keyword in label for keyword in ['trash', 'garbage', 'waste', 'bin', 'dumpster', 'litter', 'rubbish', 'sanitation']):
         return "Sanitation/Garbage"
-    if any(keyword in label for keyword in ['street_lamp', 'spotlight', 'street_sign']):
+    if any(keyword in label for keyword in ['street_lamp', 'spotlight', 'street_sign', 'light', 'lamp', 'lighting']):
         return "Street Lighting"
-    if any(keyword in label for keyword in ['pothole', 'manhole_cover']):
+    if any(keyword in label for keyword in ['pothole', 'manhole', 'road', 'crack', 'damage']):
         return "Roads/Potholes"
     return "Others"
 
@@ -50,21 +52,28 @@ def classify_image_from_url(url: str):
         response = requests.get(url, timeout=10)
         response.raise_for_status()
         image = Image.open(io.BytesIO(response.content)).convert("RGB")
-        image = image.resize((224, 224))
-        image_array = np.array(image)
-        image_array = np.expand_dims(image_array, axis=0)
-        processed_image = preprocess_input(image_array)
-        
-        predictions = model.predict(processed_image)
-        decoded_predictions = decode_predictions(predictions, top=1)[0]
-        
-        top_prediction = decoded_predictions[0]
-        _, raw_label, confidence = top_prediction
-        final_category = map_prediction_to_category(raw_label)
-        
-        return {"category": final_category, "confidence": float(confidence)}
+
+        results = model(image)
+
+        best_detection = None
+        best_confidence = 0.0
+
+        for r in results:
+            if r.boxes is not None and len(r.boxes) > 0:
+                for box in r.boxes:
+                    conf = float(box.conf[0])
+                    if conf > best_confidence:
+                        best_confidence = conf
+                        cls_id = int(box.cls[0])
+                        best_detection = model.names[cls_id]
+
+        if best_detection is None:
+            return {"category": "Others", "confidence": 0.0}
+
+        final_category = map_prediction_to_category(best_detection)
+        return {"category": final_category, "confidence": best_confidence}
     except Exception as e:
-        print(f"ERROR: Could not process image from URL {url}. Reason: {e}")
+        logger.error(f"Could not process image from URL {url}: {e}")
         return None
 
 # --- 5. FastAPI App ---
@@ -111,5 +120,5 @@ async def transcribe_audio(
             raise HTTPException(status_code=500, detail="Failed to transcribe audio.")
         return result
     except Exception as e:
-        print(f"Transcription Route Error: {e}")
+        logger.error(f"Transcription route error: {e}")
         raise HTTPException(status_code=500, detail=str(e))

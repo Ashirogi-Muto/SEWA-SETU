@@ -99,7 +99,7 @@ export default function FieldAdminPage() {
   const queueTasks = tasks.slice(1);
 
   return (
-    <div className="w-full max-w-md mx-auto min-h-screen bg-gray-50 dark:bg-[#050A14] text-gray-900 dark:text-white pb-32 relative shadow-2xl overflow-x-hidden transition-colors duration-300">
+    <div className="w-full max-w-md mx-auto h-screen bg-gray-50 dark:bg-[#050A14] text-gray-900 dark:text-white pb-32 relative shadow-2xl overflow-x-hidden overflow-y-auto transition-colors duration-300">
       {/* Header */}
       <header className="sticky top-0 z-20 bg-white/80 dark:bg-[#0f172a]/80 backdrop-blur-md border-b border-gray-100 dark:border-white/5 p-4 flex justify-between items-center rounded-b-2xl mb-4">
         <Image

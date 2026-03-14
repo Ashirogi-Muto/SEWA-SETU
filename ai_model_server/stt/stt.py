@@ -4,6 +4,8 @@ import os
 import numpy as np
 from pydub import AudioSegment
 from transformers import AutoModel, WhisperProcessor, WhisperForConditionalGeneration
+from ai_model_server.logging_config import get_logger
+logger = get_logger("stt_legacy", "stt")
 
 # ============================================================
 # Configuration
@@ -21,14 +23,14 @@ INDIC_LANGUAGES = {
 # 1. Load IndicConformer (for Indian languages)
 # ============================================================
 INDIC_MODEL_ID = "ai4bharat/indic-conformer-600m-multilingual"
-print(f"Loading IndicConformer: {INDIC_MODEL_ID}...")
+logger.info(f"Loading IndicConformer: {INDIC_MODEL_ID}...")
 indic_model = AutoModel.from_pretrained(
     INDIC_MODEL_ID,
     trust_remote_code=True,
     token=HF_TOKEN
 )
 indic_model.eval()
-print("IndicConformer loaded!")
+logger.info("IndicConformer loaded!")
 
 # ============================================================
 # 2. Load Whisper Small (For LID and English)
@@ -42,7 +44,7 @@ def _load_whisper():
     global whisper_processor, whisper_model
     if whisper_model is not None:
         return
-    print(f"Loading Whisper: {WHISPER_MODEL_ID}...")
+    logger.info(f"Loading Whisper: {WHISPER_MODEL_ID}...")
     whisper_processor = WhisperProcessor.from_pretrained(WHISPER_MODEL_ID)
     device = "cuda:0" if torch.cuda.is_available() else "cpu"
     dtype = torch.float16 if torch.cuda.is_available() else torch.float32
@@ -51,7 +53,7 @@ def _load_whisper():
     )
     whisper_model.to(device)
     whisper_model.eval()
-    print("Whisper loaded!")
+    logger.info("Whisper loaded!")
 
 # ============================================================
 # Audio Preprocessing
@@ -86,7 +88,7 @@ def detect_language_whisper(speech_array: np.ndarray, inputs) -> str:
     # Strip '<|' and '|>' from the token
     lang_code = language_token.replace('<|', '').replace('|>', '')
     
-    print(f"🌐 Whisper LID: detected '{lang_code}'")
+    logger.info(f"Whisper LID: detected '{lang_code}'")
     return lang_code
 
 # ============================================================
@@ -107,12 +109,12 @@ def transcribe_audio_blob(audio_bytes: bytes, lang_code: str = None):
         if lang_code is None:
             lang_code = detect_language_whisper(speech_array, inputs)
         else:
-            print(f"🌐 Language forced: '{lang_code}'")
+            logger.info(f"Language forced: '{lang_code}'")
             
         # 2. Route Transcription
         if lang_code in INDIC_LANGUAGES:
             # Route to IndicConformer
-            print(f"Routing to IndicConformer for language: {lang_code}")
+            logger.info(f"Routing to IndicConformer for language: {lang_code}")
             wav_tensor = torch.FloatTensor(speech_array).unsqueeze(0)
             with torch.no_grad():
                 transcription = indic_model(wav_tensor, lang_code, "ctc")
@@ -121,7 +123,7 @@ def transcribe_audio_blob(audio_bytes: bytes, lang_code: str = None):
             
         else:
             # Route to Whisper
-            print(f"Routing to Whisper for language: {lang_code}")
+            logger.info(f"Routing to Whisper for language: {lang_code}")
             try:
                 with torch.no_grad():
                     forced_decoder_ids = whisper_processor.get_decoder_prompt_ids(
@@ -138,7 +140,7 @@ def transcribe_audio_blob(audio_bytes: bytes, lang_code: str = None):
                 return {"text": transcription.strip(), "language": lang_code, "model": "whisper"}
             except ValueError:
                 # If Whisper doesn't support the language or it's an invalid token, fallback
-                print(f"⚠️ Unknown or unsupported language '{lang_code}'. Defaulting to IndicConformer ('hi').")
+                logger.warning(f"Unknown or unsupported language '{lang_code}'. Defaulting to IndicConformer ('hi').")
                 fallback_lang = "hi"
                 wav_tensor = torch.FloatTensor(speech_array).unsqueeze(0)
                 with torch.no_grad():
@@ -147,10 +149,10 @@ def transcribe_audio_blob(audio_bytes: bytes, lang_code: str = None):
                 return {"text": text.strip(), "language": fallback_lang, "model": "indic-conformer (fallback)"}
 
     except Exception as e:
-        print(f"Transcription error: {e}")
+        logger.error(f"Transcription error: {e}")
         import traceback
         traceback.print_exc()
         return None
 
 if __name__ == "__main__":
-    print("Dual-Model (Whisper LID) STT setup complete!")
+    logger.info("Dual-Model (Whisper LID) STT setup complete!")

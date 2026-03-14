@@ -42,7 +42,7 @@ from backend.schemas import (
 async def lifespan(app: FastAPI):
     # Startup actions
     start_scheduler()
-    logger.info("🚀 SewaSetu Backend Started (Local Mode)")
+    logger.info(" SewaSetu Backend Started (Local Mode)")
     yield
     # Shutdown actions (if any)
 
@@ -136,7 +136,7 @@ async def register(request: RegisterRequest, db: AsyncSession = Depends(get_db))
     result = await db.execute(stmt)
     if result.scalars().first():
         raise HTTPException(status_code=400, detail="Email already registered")
-        
+
     new_user = User(
         email=request.email,
         name=request.name,
@@ -146,7 +146,7 @@ async def register(request: RegisterRequest, db: AsyncSession = Depends(get_db))
     db.add(new_user)
     await db.commit()
     await db.refresh(new_user)
-    
+
     token = create_access_token({"sub": new_user.email, "user_id": new_user.id, "role": new_user.role})
 
     return {
@@ -238,7 +238,7 @@ async def export_user_data(db: AsyncSession = Depends(get_db), current_user: Use
     reports = result.scalars().all()
     for r in reports:
         writer.writerow([r.id, r.category, r.status.value, r.created_at.strftime("%Y-%m-%d %H:%M:%S"), r.description[:100]])
-    
+
     return PlainTextResponse(output.getvalue(), media_type="text/csv", headers={"Content-Disposition": "attachment; filename=user_export.csv"})
 
 @router.get("/health")
@@ -272,7 +272,7 @@ async def get_departments(db: AsyncSession = Depends(get_db), current_user: User
     stmt = select(Department)
     result = await db.execute(stmt)
     departments = result.scalars().all()
-    
+
     # Seed if empty (for demo)
     if not departments:
         seed_data = [
@@ -286,11 +286,11 @@ async def get_departments(db: AsyncSession = Depends(get_db), current_user: User
             d = Department(name=data["name"], email=data["email"])
             db.add(d)
         await db.commit()
-        
+
         # Re-fetch
         result = await db.execute(stmt)
         departments = result.scalars().all()
-        
+
     return departments
 
 @router.post("/departments", response_model=DepartmentResponse)
@@ -301,7 +301,7 @@ async def create_department(dept: DepartmentCreate, db: AsyncSession = Depends(g
     result = await db.execute(stmt)
     if result.scalars().first():
         raise HTTPException(status_code=400, detail="Department already exists")
-    
+
     new_dept = Department(name=dept.name, email=dept.email)
     db.add(new_dept)
     await db.commit()
@@ -319,17 +319,17 @@ async def get_dashboard_data(db: AsyncSession = Depends(get_db), current_user: U
     stmt_total = select(func.count(Report.id))
     result_total = await db.execute(stmt_total)
     total_reports = result_total.scalar() or 0
-    
+
     # Resolved Reports
     stmt_resolved = select(func.count(Report.id)).where(Report.status == ReportStatus.RESOLVED)
     result_resolved = await db.execute(stmt_resolved)
     reports_resolved = result_resolved.scalar() or 0
-    
+
     # Active Departments (Count departments with at least one user or report, simplified to just count all for now)
     stmt_depts = select(func.count(Department.id))
     result_depts = await db.execute(stmt_depts)
     active_departments = result_depts.scalar() or 0
-    
+
     # Avg Resolution Time (dynamically computed from resolved reports)
     stmt_avg = select(
         func.avg(
@@ -351,7 +351,7 @@ async def get_dashboard_data(db: AsyncSession = Depends(get_db), current_user: U
     stmt_recent = select(Report).order_by(desc(Report.created_at)).limit(5)
     result_recent = await db.execute(stmt_recent)
     recent_reports_list = result_recent.scalars().all()
-    
+
     recent_reports_data = []
     for r in recent_reports_list:
         # Calculate relative time string simplistically
@@ -362,7 +362,7 @@ async def get_dashboard_data(db: AsyncSession = Depends(get_db), current_user: U
             time_str = f"{time_diff.seconds // 3600} hours ago"
         else:
              time_str = f"{time_diff.seconds // 60} mins ago"
-             
+
         recent_reports_data.append({
             "id": f"R-{r.id}",
             "issue": r.description[:30] + "..." if len(r.description) > 30 else r.description,
@@ -372,13 +372,13 @@ async def get_dashboard_data(db: AsyncSession = Depends(get_db), current_user: U
 
     # 3. Department Distribution for Donut Chart (Group by Category)
     stmt_perf = select(
-        Report.category, 
+        Report.category,
         func.count(Report.id).label("total")
     ).group_by(Report.category)
-    
+
     result_perf = await db.execute(stmt_perf)
     perf_rows = result_perf.all()
-    
+
     # We map categories to colors like the original donut chart
     # Default colors for known categories
     category_colors = {
@@ -390,18 +390,18 @@ async def get_dashboard_data(db: AsyncSession = Depends(get_db), current_user: U
     }
 
     department_distribution = []
-    
+
     chart_total = sum(row.total for row in perf_rows) if perf_rows else 1
-    
+
     for row in perf_rows:
         cat_name = row.category or "Others"
-        color = category_colors.get(cat_name, "#A855F7") 
+        color = category_colors.get(cat_name, "#A855F7")
         department_distribution.append({
             "name": cat_name,
             "value": int((row.total / chart_total) * 100),
             "color": color
         })
-        
+
     # Make sure they add up to exactly 100 if there's any rounding diff
     if department_distribution:
         diff = 100 - sum(d["value"] for d in department_distribution)
@@ -423,14 +423,14 @@ async def get_dashboard_data(db: AsyncSession = Depends(get_db), current_user: U
 async def get_escalations(db: AsyncSession = Depends(get_db), current_user: User = Depends(get_current_user)):
     if current_user.role != "admin":
         raise HTTPException(status_code=403, detail="Admin access required")
-        
+
     stmt = select(Report).where(
         Report.status.in_([ReportStatus.OPEN, ReportStatus.IN_PROGRESS])
     ).order_by(desc(Report.created_at)).limit(10)
-    
+
     result = await db.execute(stmt)
     escalations = result.scalars().all()
-    
+
     data = []
     for r in escalations:
         time_diff = datetime.now(timezone.utc) - r.created_at.replace(tzinfo=timezone.utc)
@@ -438,7 +438,7 @@ async def get_escalations(db: AsyncSession = Depends(get_db), current_user: User
             time_str = f"{time_diff.days}h {time_diff.seconds // 3600}m"
         else:
             time_str = f"{time_diff.seconds // 3600}h {(time_diff.seconds % 3600) // 60}m"
-            
+
         # Determine severity based on impact
         if r.impact_score >= 8.0:
             severity = "Critical"
@@ -446,7 +446,7 @@ async def get_escalations(db: AsyncSession = Depends(get_db), current_user: User
             severity = "High"
         else:
             severity = "Medium"
-            
+
         data.append({
             "id": f"#GN-{r.id}",
             "department": r.category or "Others",
@@ -454,7 +454,7 @@ async def get_escalations(db: AsyncSession = Depends(get_db), current_user: User
             "severity": severity,
             "time_elapsed": time_str
         })
-        
+
     return data
 
 @router.get("/analytics", response_model=AnalyticsResponse)
@@ -463,12 +463,12 @@ async def get_analytics(db: AsyncSession = Depends(get_db), current_user: User =
     stmt_total = select(func.count(Report.id))
     result_total = await db.execute(stmt_total)
     total_reports = result_total.scalar() or 0
-    
+
     # Reports by Category
     stmt_cat = select(Report.category, func.count(Report.id)).group_by(Report.category)
     result_cat = await db.execute(stmt_cat)
     reports_by_category = {row[0] or "Uncategorized": row[1] for row in result_cat.all()}
-    
+
     # Reports by Status
     stmt_status = select(Report.status, func.count(Report.id)).group_by(Report.status)
     result_status = await db.execute(stmt_status)
@@ -486,18 +486,18 @@ async def get_alerts(db: AsyncSession = Depends(get_db), current_user: User = De
     stmt = select(Alert).where(
         (Alert.user_id == current_user.id) | (Alert.user_id == None)
     ).order_by(desc(Alert.created_at)).limit(20)
-    
+
     result = await db.execute(stmt)
     db_alerts = result.scalars().all()
-    
+
     frontend_alerts = []
     now = datetime.now(timezone.utc)
-    
+
     for a in db_alerts:
         # Calculate human-readable 'time ago'
         created = a.created_at.replace(tzinfo=timezone.utc) if a.created_at.tzinfo is None else a.created_at
         diff = now - created
-        
+
         if diff.days > 0:
             time_str = f"{diff.days} d ago"
         elif diff.seconds >= 3600:
@@ -506,7 +506,7 @@ async def get_alerts(db: AsyncSession = Depends(get_db), current_user: User = De
             time_str = f"{diff.seconds // 60} m ago"
         else:
             time_str = "Just now"
-            
+
         frontend_alerts.append({
             "id": f"alert-{a.id}",
             "type": a.type.value,
@@ -516,7 +516,7 @@ async def get_alerts(db: AsyncSession = Depends(get_db), current_user: User = De
             "icon": a.icon,
             "is_read": a.is_read
         })
-        
+
     return frontend_alerts
 
 @router.put("/alerts/{alert_id}/read")
@@ -526,7 +526,7 @@ async def mark_alert_read(alert_id: int, db: AsyncSession = Depends(get_db), cur
     alert = result.scalars().first()
     if not alert:
         raise HTTPException(status_code=404, detail="Alert not found")
-    
+
     alert.is_read = True
     db.add(alert)
     await db.commit()
@@ -537,11 +537,11 @@ async def mark_all_alerts_read(db: AsyncSession = Depends(get_db), current_user:
     stmt = select(Alert).where(Alert.user_id == current_user.id, Alert.is_read == False)
     result = await db.execute(stmt)
     alerts = result.scalars().all()
-    
+
     for alert in alerts:
         alert.is_read = True
         db.add(alert)
-        
+
     await db.commit()
     return {"status": "success"}
 
@@ -580,8 +580,8 @@ async def get_assigned_reports(
 @router.get("/reports/all")
 async def get_all_reports(
     request: Request, # Added Request to get current host
-    skip: int = 0, 
-    limit: int = 100, 
+    skip: int = 0,
+    limit: int = 100,
     status: Optional[str] = None,
     category: Optional[str] = None,
     db: AsyncSession = Depends(get_db),
@@ -589,33 +589,33 @@ async def get_all_reports(
 ):
     # Base query
     query = select(Report).where(Report.is_active == True).order_by(desc(Report.created_at))
-    
+
     # Filters
     if status and status != "all":
         query = query.where(Report.status == status)
     if category and category != "all":
         query = query.where(Report.category == category)
-        
+
     # Execution
     query = query.offset(skip).limit(limit)
     result = await db.execute(query)
     reports = result.scalars().all()
-    
+
     # Detach from session so url mutations don't flush to DB
     for r in reports:
         db.expunge(r)
-    
+
     # Dynamic URL Fix: Rewrite image_urls to match current request host
     # This fixes issues where 'localhost' was saved but accessed via Public IP
     current_base = str(request.base_url).rstrip('/')
-    
+
     for report in reports:
         if report.image_url and "http" in report.image_url:
              # Extract relative path from saved URL (assuming structure contains /static/uploads/)
              if "/static/uploads/" in report.image_url:
                  filename = report.image_url.split("/static/uploads/")[-1]
                  report.image_url = f"{current_base}/static/uploads/{filename}"
-    
+
     return reports
 
 @router.post("/reports", response_model=dict)
@@ -633,12 +633,12 @@ async def submit_report(
         saved_image_urls = []
         image_bytes = None
         image_bytes_hash = None
-        
+
         for image in images:
             file_ext = image.filename.split('.')[-1]
             filename = f"{uuid.uuid4()}.{file_ext}"
             filepath = os.path.join(UPLOAD_DIR, filename)
-            
+
             # Read bytes for duplicate check (first image only)
             content = await image.read()
             if not image_bytes:
@@ -652,10 +652,10 @@ async def submit_report(
                 except Exception as e:
                     logger.warning(f"Could not compute image hash: {e}")
                     image_bytes_hash = None
-            
+
             async with aiofiles.open(filepath, 'wb') as f:
                 await f.write(content)
-                
+
             # Construct URL dynamically based on request host
             base_url = str(request.base_url).rstrip('/')
             file_url = f"{base_url}/static/uploads/{filename}"
@@ -668,15 +668,15 @@ async def submit_report(
             latitude=latitude,
             longitude=longitude
         )
-        
+
         duplicate_of_report = await find_duplicate(db, temp_report, image_bytes)
-        
+
         if duplicate_of_report:
-            logger.info(f"♻️  Duplicate Detected! Linked to ID: {duplicate_of_report.id}")
+            logger.info(f"  Duplicate Detected! Linked to ID: {duplicate_of_report.id}")
 
         # 3. AI Classification
         ai_result = await classify_report_local(description, saved_image_urls)
-        
+
         # 4. Create Report Record
         new_report = Report(
             user_id=current_user.id,
@@ -690,30 +690,30 @@ async def submit_report(
             status=ReportStatus.OPEN,
             duplicate_of=duplicate_of_report.id if duplicate_of_report else None
         )
-        
+
         db.add(new_report)
         await db.flush() # Get ID
-        
+
         # 5. Post-Processing (Impact & Notifications)
         if duplicate_of_report:
             # Update Parent count and impact
             duplicate_of_report.duplicate_count += 1
             duplicate_of_report.impact_score = calculate_impact(duplicate_of_report)
             db.add(duplicate_of_report)
-            
+
             # Notify Admin of Update
             await manager.broadcast("duplicate_detected", {
                 "original_id": duplicate_of_report.id,
                 "new_report_id": new_report.id,
                 "new_impact": duplicate_of_report.impact_score
             })
-            
+
             user_message = "This issue was already reported. Your report has been linked to strengthen priority."
         else:
             # Calculate Initial Impact
             new_report.impact_score = calculate_impact(new_report)
             user_message = "Report submitted successfully."
-            
+
             # Notify Admin of New Report
             await manager.broadcast("new_report", {
                 "id": new_report.id,
@@ -724,7 +724,7 @@ async def submit_report(
 
         await db.commit()
         await db.refresh(new_report)
-        
+
         return {
             "id": new_report.id,
             "message": user_message,
@@ -734,7 +734,7 @@ async def submit_report(
         }
 
     except Exception as e:
-        logger.exception(f"❌ Report Submission Failed: {e}")
+        logger.exception(f" Report Submission Failed: {e}")
         await db.rollback()
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -749,20 +749,20 @@ async def update_status(report_id: int, status: ReportStatus, db: AsyncSession =
     stmt = select(Report).where(Report.id == report_id)
     result = await db.execute(stmt)
     report = result.scalars().first()
-    
+
     if not report:
         raise HTTPException(status_code=404, detail="Report not found")
-        
+
     old_status = report.status
     report.status = status
-    
+
     # Recalculate impact if resolved (stops escalation)
     if status == ReportStatus.RESOLVED:
-         # Optionally reduce impact or just freeze it. 
+         # Optionally reduce impact or just freeze it.
          # User requirement: "recalculates downward"
          report.escalation_level = 0
          report.impact_score = calculate_impact(report)
-    
+
     # Generate a real database Alert for the user who created it
     if report.user_id:
         new_alert = Alert(
@@ -775,14 +775,14 @@ async def update_status(report_id: int, status: ReportStatus, db: AsyncSession =
         db.add(new_alert)
 
     await db.commit()
-    
+
     await manager.broadcast("status_changed", {
         "id": report.id,
         "old_status": old_status,
         "new_status": status,
         "impact_score": report.impact_score
     })
-    
+
     return {"status": "updated", "new_status": status}
 
 @router.post("/transcribe")
@@ -790,21 +790,21 @@ async def transcribe_proxy(file: UploadFile = File(...), provider: str = None):
     try:
         audio_bytes = await file.read()
         files = {"file": (file.filename, audio_bytes, file.content_type)}
-        
+
         # Derive base URL from the classify URL
         ai_base_url = os.getenv("AI_SERVER_BASE_URL", "http://127.0.0.1:8003")
-        
+
         # Forward provider param if specified
         params = {}
         if provider:
             params["provider"] = provider
-        
+
         async with httpx.AsyncClient(timeout=120.0) as client:
             response = await client.post(f"{ai_base_url}/api/transcribe", files=files, params=params)
             response.raise_for_status()
-            
+
             return response.json()
-            
+
     except httpx.HTTPError as e:
         logger.error(f"STT Proxy Network Error: {e}")
         raise HTTPException(status_code=503, detail="Transcription AI service unavailable")

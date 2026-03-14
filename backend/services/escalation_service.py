@@ -21,49 +21,49 @@ async def check_escalations():
     """
     Periodic job to escalate stale reports.
     """
-    logger.info("⏰ Running Escalation Check...")
-    
+    logger.info(" Running Escalation Check...")
+
     async with AsyncSessionLocal() as session:
         try:
             # Find open reports older than threshold
             # Note: This is a simplified check. In prod, use DB query for filtering date.
             # Here we fetch active open/in_progress and check python-side for complex logic if needed
             # or simplify with SQL.
-            
+
             stmt = select(Report).where(
                 and_(
                     Report.is_active == True,
                     Report.status.in_([ReportStatus.OPEN, ReportStatus.IN_PROGRESS])
                 )
             )
-            
+
             result = await session.execute(stmt)
             reports = result.scalars().all()
-            
+
             threshold_delta = timedelta(hours=ESCALATION_THRESHOLD_HOURS)
             now = datetime.now(timezone.utc)
-            
+
             updates = 0
-            
+
             for report in reports:
                 # Ensure timezone awareness compatibility
                 created_at = report.created_at
                 if not created_at.tzinfo:
                     created_at = created_at.replace(tzinfo=timezone.utc)
-                
+
                 if now - created_at > threshold_delta:
                     # Check cap
                     if report.escalation_level >= MAX_ESCALATION_LEVEL:
                         continue
-                    
+
                     # ESCALATE
                     old_level = report.escalation_level
                     report.escalation_level += 1
                     report.impact_score = calculate_impact(report)
-                    
+
                     session.add(report)
                     updates += 1
-                    
+
                     # Notify
                     await manager.broadcast("escalation_triggered", {
                         "id": report.id,
@@ -71,11 +71,11 @@ async def check_escalations():
                         "impact_score": report.impact_score,
                         "message": f"Report escalated to level {report.escalation_level}"
                     })
-                    
+
             if updates > 0:
                 await session.commit()
-                logger.info(f"🚀 Escalated {updates} reports.")
-                
+                logger.info(f" Escalated {updates} reports.")
+
         except Exception as e:
             logger.error(f"Escalation job failed: {e}")
             await session.rollback()
@@ -83,4 +83,4 @@ async def check_escalations():
 def start_scheduler():
     scheduler.add_job(check_escalations, 'interval', seconds=ESCALATION_INTERVAL_SECONDS)
     scheduler.start()
-    logger.info(f"⏳ Escalation Scheduler started (Demo Mode: {DEMO_MODE})")
+    logger.info(f" Escalation Scheduler started (Demo Mode: {DEMO_MODE})")

@@ -4,7 +4,7 @@
 
 ---
 
-## 🎯 Problem & Solution
+##  Problem & Solution
 
 **The Problem:** Citizens struggle to report civic issues (potholes, streetlights, waterlogging, waste) with clear categories and accountability. Manual categorization by authorities is slow, prone to errors, and inconsistent, leading to delayed resolutions.
 
@@ -17,7 +17,7 @@
 
 ---
 
-## 💻 Tech Stack
+##  Tech Stack
 
 | Layer | Technology |
 |-------|------------|
@@ -28,31 +28,31 @@
 
 ---
 
-## 🚀 20-STEP MASTER PLAN
+##  20-STEP MASTER PLAN
 
 | Status | Phase | Step | Feature |
 |:---:|:---|:---|:---|
-| ✅ | **Phase 1: Base** | 1-4 | APIs + Prisma + Karma + Basic AI fallback |
-| ✅ | **Phase 1: Portals** | 5 | 📱 Citizen Portal (`/citizen`) Mobile PWA: Voice + GPS + Photo + Karma UI |
-| 🔲 | **Phase 1: Portals** | 6 | 💻 Superadmin Portal (`/admin`): Heatmap + Leaderboard + Override |
-| 🔲 | **Phase 1: Portals** | 7 | 📱 Field Admin (`/fieldadmin`): Tasks + "FIXED" button + Nearby heatmap |
-| 🔲 | **Phase 1: Portals** | 8 | 🤖 Auto-Assignment: Report → AI Category → Department Routing (PWD, UPPCL, Jal Nigam, Sanitation, etc.) |
-| 🔲 | **Phase 2: Features**| 9 | 🗺️ Shared Heatmap (Superadmin + Field Admin) |
-| 🔲 | **Phase 2: Features**| 10 | ⏱️ SLA Timers (e.g., 24h UPPCL, 48h PWD) |
-| 🔲 | **Phase 2: Features**| 11 | 📊 CSV Export + Stats |
-| 🔲 | **Phase 2: Features**| 12 | 🇮🇳 Hindi Toggle |
-| 🔲 | **Phase 2: Features**| 13 | 📈 Karma Badges + Leaderboard |
-| 🔲 | **Phase 3: Killer** | 14 | 🤖 WhatsApp Bot Integration |
-| 🔲 | **Phase 3: Killer** | 15 | 📱 Offline PWA (Queue & Sync) |
-| 🔲 | **Phase 3: Killer** | 16 | 🐦 **Auto-Escalation Bot**: Auto-tweets local authorities if an issue breaches SLA |
-| 🔲 | **Phase 4: AI & Deploy**| 17 | 🔧 AI 12-class YOLO fix (Image verification) |
-| 🔲 | **Phase 4: AI & Deploy**| 18 | ☁️ Vercel Deployment (`sewasetu.in`) |
-| 🔲 | **Phase 4: AI & Deploy**| 19 | 🎥 Demo Video + Pitch Deck |
-| 🔲 | **Phase 4: AI & Deploy**| 20 | 🎉 Hackathon Submission |
+|  | **Phase 1: Base** | 1-4 | APIs + Prisma + Karma + Basic AI fallback |
+|  | **Phase 1: Portals** | 5 |  Citizen Portal (`/citizen`) Mobile PWA: Voice + GPS + Photo + Karma UI |
+|  | **Phase 1: Portals** | 6 |  Superadmin Portal (`/admin`): Heatmap + Leaderboard + Override |
+|  | **Phase 1: Portals** | 7 |  Field Admin (`/fieldadmin`): Tasks + "FIXED" button + Nearby heatmap |
+|  | **Phase 1: Portals** | 8 |  Auto-Assignment: Report → AI Category → Department Routing (PWD, UPPCL, Jal Nigam, Sanitation, etc.) |
+|  | **Phase 2: Features**| 9 |  Shared Heatmap (Superadmin + Field Admin) |
+|  | **Phase 2: Features**| 10 |  SLA Timers (e.g., 24h UPPCL, 48h PWD) |
+|  | **Phase 2: Features**| 11 |  CSV Export + Stats |
+|  | **Phase 2: Features**| 12 |  Hindi Toggle |
+|  | **Phase 2: Features**| 13 |  Karma Badges + Leaderboard |
+|  | **Phase 3: Killer** | 14 |  WhatsApp Bot Integration |
+|  | **Phase 3: Killer** | 15 |  Offline PWA (Queue & Sync) |
+|  | **Phase 3: Killer** | 16 |  **Auto-Escalation Bot**: Auto-tweets local authorities if an issue breaches SLA |
+|  | **Phase 4: AI & Deploy**| 17 |  AI 12-class YOLO fix (Image verification) |
+|  | **Phase 4: AI & Deploy**| 18 |  Vercel Deployment (`sewasetu.in`) |
+|  | **Phase 4: AI & Deploy**| 19 |  Demo Video + Pitch Deck |
+|  | **Phase 4: AI & Deploy**| 20 |  Hackathon Submission |
 
 ---
 
-## 📂 Repository Structure
+##  Repository Structure
 
 ```text
 sewasetu/
@@ -75,7 +75,7 @@ sewasetu/
 
 ---
 
-## 🛠️ How to Run Locally
+##  How to Run Locally
 
 **1. Install dependencies**
 ```bash
@@ -100,7 +100,7 @@ npm run dev
 
 ---
 
-## 🔐 Environment Variables
+##  Environment Variables
 
 Copy `.env.example` to `.env` and configure the following:
 
@@ -122,4 +122,4 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY="your_supabase_anon_key"
 
 ---
 
-*Built with ❤️ by The Artifices*
+*Built with  by The Artifices*

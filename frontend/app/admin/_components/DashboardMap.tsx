@@ -52,8 +52,9 @@ export default function DashboardMap({ reports }: DashboardMapProps) {
             attributionControl: false,
         })
 
-        L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+        L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
             maxZoom: 19,
+            attribution: 'Tiles &copy; Esri &mdash; Source: Esri'
         }).addTo(map)
 
         mapRef.current = map
@@ -188,7 +189,7 @@ export default function DashboardMap({ reports }: DashboardMapProps) {
             </div>
 
             {/* Severity legend - bottom left */}
-            <div className="absolute bottom-3 left-3 bg-slate-900/80 backdrop-blur border border-slate-600 p-2.5 rounded-lg flex flex-col gap-1.5 z-[500]">
+            <div className="absolute bottom-24 left-3 bg-slate-900/80 backdrop-blur border border-slate-600 p-2.5 rounded-lg flex flex-col gap-1.5 z-[500]">
                 <span className="text-[10px] text-slate-400 font-semibold uppercase tracking-wider">SEVERITY</span>
                 <div className="flex items-center gap-1.5 text-[10px] text-slate-300"><div className="w-2 h-2 rounded-full bg-red-500 shadow-[0_0_6px_rgba(239,68,68,0.8)]" /> High</div>
                 <div className="flex items-center gap-1.5 text-[10px] text-slate-300"><div className="w-2 h-2 rounded-full bg-amber-500 shadow-[0_0_6px_rgba(245,158,11,0.8)]" /> Medium</div>

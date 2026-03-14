@@ -19,13 +19,8 @@ Logs are formatted as **JSON** for better machine readability and structured par
 **Native Python Configuration**: The `setup_logger` function initializes a logger (named `sewasetu`), sets the default level to `INFO`, and attaches a `logging.StreamHandler(sys.stdout)`. 
 *This means the Python backend natively only logs to the standard console output (stdout) and does not write to any file natively.*
 
-**Why are log files created in the root directory?**
-Because the backend only outputs to standard output, log files like `backend.log`, `ai_server.log`, `frontend.log`, etc., are created by OS-level bash redirection. 
-For instance, in `start_local.sh`, the backend is launched in the background and its output is redirected to the root folder:
-```bash
-uvicorn backend.main:app > backend.log 2>&1 &
-```
-Since the current working directory of the script is the project root, the `backend.log` file is generated there.
+**Why are log files created in the logs/ directory?**
+Because the `scripts/start_all.sh` script launches services in tmux windows, and all output is piped through `scripts/rotatelogs.sh` to persistent log files in the `logs/` directory.
 
 ---
 
@@ -60,10 +55,6 @@ Here is a breakdown of what each module logs:
 
 ---
 
-## 3. Summary & Recommendations
+## 3. Summary
 
-Currently, the native logging outputs purely to `stdout`. The shell wrapper scripts `start_local.sh` and related scripts are solely responsible for creating log files via redirection (`> backend.log 2>&1`). 
-
-**To stop log files from cluttering the root directory:**
-1. You can update the launch scripts (`start_local.sh`, `start_frontend.sh`, etc.) to point the redirection to a specific `logs/` directory (e.g., `> logs/backend.log`).
-2. Alternatively, you can modify `backend/logging_config.py` to use Python's built-in `logging.FileHandler` or `logging.handlers.RotatingFileHandler` pointing to a designated `logs` directory inside the project.
+The native logging outputs both to `stdout` and to local log files using `RotatingFileHandler` (max 5MB, 3 backups) in the `logs/` directory. The `scripts/start_all.sh` script launches services in tmux windows, and all output is piped through `scripts/rotatelogs.sh` to capture anything that doesn't go through the native logger (like uvicorn startup logs).
